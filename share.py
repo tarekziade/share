@@ -37,7 +37,6 @@ def post_key(email, appname, pub_key, enc_priv_key, nonce, appkey):
         raise Exception('Failed')
 
 
-
 def generate_keys():
     # generate random private/public key
     private_key = PrivateKey.generate()
@@ -53,11 +52,14 @@ def encrypt_key(key, secret):
     return encrypted, binascii.hexlify(nonce)
 
 
+# let's generate a public and a private key pair
 priv, pub = generate_keys()
 pub = binascii.hexlify(pub.encode())
 enc_priv, nonce = encrypt_key(priv, kBr)
 
-
+# posting the key to the user directory service
 post_key(email, appname, pub, enc_priv, nonce, appkey)
+
+# getting the key out of the user directory service
 print(get_key(email, appname, appkey))
 
