@@ -58,12 +58,17 @@ Server API
 GET /<email>/<appname>/key
 --------------------------
 
+**Requires an FxA Oauth authentication**
+
 Returns the keys of a given user for a given app.
 The returned value is a json mapping containing:
 
 - pubKey: the public key
 - encPrivKey: the encrypted private key
 - nonce: the nonce used to encrypt the private key
+
+The encPrivKey and nonce fields are sent back only if the
+authenticated user owns the email.
 
 
 POST /<email>/<appname>/key
