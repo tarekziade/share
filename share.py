@@ -64,11 +64,12 @@ def encrypt_key(key, secret):
 
 
 # let's sign into FxA and grab kA, kB
+# XXX in the real world we'll use an oauth relier flow
+# but for now we're using a direct fxa login
 from fxa.core import Client
 from getpass import getpass
 
 client = Client("https://api.accounts.firefox.com")
-
 email = raw_input('FxA email: ')
 password = getpass('FxA password: ')
 
