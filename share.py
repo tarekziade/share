@@ -75,7 +75,7 @@ password = getpass('FxA password: ')
 print('Login into FxA')
 session = client.login(email, password, keys=True)
 print('Fetching the keys')
-kA, kB = session.fetch_keys()
+kA, kB = session.fetch_keys(stretchpwd=password)
 
 # kB key derived for our app
 print('Creating kBr')
