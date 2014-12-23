@@ -4,6 +4,19 @@ import nacl.utils
 import nacl.secret
 import binascii
 from nacl.public import PrivateKey, Box
+import os
+
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.backends import default_backend
+
+
+def hkdf_expand(key, info, salt=None):
+    backend = default_backend()
+    salt = salt or os.urandom(len(key))
+    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=salt, info=info,
+                backend=backend)
+    return hkdf.derive(key), salt
 
 
 email = 'tarek@ziade.org'
@@ -11,10 +24,12 @@ appname = 'someapp'
 appkey = '12345'
 root = 'http://localhost:8000/'
 key_url = root + email + '/' + appname + '/key?appkey=' + appkey
+
 # secret key, we got from FxA
-kBr = nacl.utils.random(nacl.secret.SecretBox.KEY_SIZE)
+kB = nacl.utils.random(nacl.secret.SecretBox.KEY_SIZE)
 
-
+# key derived for our app
+__, kBr = hkdf_expand(kB, b"SharingApp")
 
 def get_key(email, appname, appkey):
     result = requests.get(key_url)
