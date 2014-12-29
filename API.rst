@@ -100,9 +100,9 @@ mapping containing:
 - encPrivKey: the encrypted private key
 - nonce: the nonce used to encrypt the private key
 
+DELETE /<email>/<appid>/key
+###########################
 
-Full example
-============
+**Requires an FxA Oauth authentication that matches <email>**
 
-XXX
-
+Removes the key.
