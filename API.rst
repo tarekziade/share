@@ -39,8 +39,8 @@ public keys for their users.
 The API key is passed to the endpoint with an **api_key**
 query option.
 
-The application is responsible to keep its directory
-identifier and pass it to users that need it.
+The application is responsible to keep its identifier and
+pass it to users that need it.
 
 
 Users registration and access
@@ -53,7 +53,6 @@ first call to the service.
 An authenticated user is able to:
 
 - publish and revoke their keys for a given application
-- get the public key of other users if they use the same application
 - list the applications they are registered to.
 
 
@@ -63,7 +62,8 @@ APIs
 GET /<email>/app/<appid>/key
 ############################
 
-**Requires an FxA Oauth authentication or an API key that matches <appid>**
+**Requires an FxA Oauth authentication that matches <email>
+or an API key that matches <appid>**
 
 Returns the keys of a given user for a given app.
 The returned value is a json mapping containing:
@@ -74,7 +74,7 @@ The returned value is a json mapping containing:
 
 
 \* The encPrivKey and nonce fields are sent back only if the
-authenticated user owns the email.
+authentication is done by the user owning the email.
 
 
 GET /<email>/app
