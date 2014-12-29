@@ -5,8 +5,8 @@ The server URLs semantics is mostly REST semantics ::
 
   https://<server>/<api path>/<version>/<further instructions>
 
-The rest of this document only documents the further instructions part
-and make the assumption that the API is served behind an ssl connection
+The rest of this document only presenrs the <further instructions> part
+and makes the assumption that the API is served behind an ssl connection
 that protects the requests header, body and query options during transport,
 as well as the responses content.
 
@@ -15,7 +15,8 @@ The proposed API can be accessed by **applications** and by **users**.
 An **application** is a third party service that interacts with the key
 server in order to obtain its users keys.
 
-A **user** is any application that posess a valid FxA token.
+A **user** is any application that has a valid Oauth token obtained after
+an FxA Oauth relier dance.
 
 
 Application registration and access
@@ -24,7 +25,6 @@ Application registration and access
 The server maintains internally a list of applications. There
 are no global public API to list, modify, add or delete applications.
 
-
 In order to interact with the service, an application must be
 added manually to the system. The registration process is out
 of the scope of this proposal.
@@ -32,8 +32,8 @@ of the scope of this proposal.
 An application is registered under a short identifier that
 will be used in the endpoints.
 
-Application that are registered get an API key they can
-use to query the server. They are only able to retrieve the
+Applications that are registered get an API key they can
+use to query the service. They are only able to retrieve the
 public keys for their users.
 
 The API key is passed to the endpoint with an **api_key**
