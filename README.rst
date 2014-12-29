@@ -113,7 +113,7 @@ The returned value is a json mapping containing:
 - nonce*: the nonce used to encrypt the private key
 
 
-* The encPrivKey and nonce fields are sent back only if the
+\* The encPrivKey and nonce fields are sent back only if the
 authenticated user owns the email.
 
 
