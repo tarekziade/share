@@ -1,17 +1,29 @@
-Server API
-==========
+Key Server API
+==============
 
-The server API is served under https, so no header or query options
-are revealed through the transport.
+The server URLs semantics is mostly REST semantics ::
 
-The server maintains internally a list of applications. There
-are no global public API to list, modify, add or delete applications.
+  https://<server>/<api path>/<version>/<further instructions>
 
-The API can be accessed by **applications** and by **users**.
+The rest of this document only documents the further instructions part
+and make the assumption that the API is served behind an ssl connection
+that protects the requests header, body and query options during transport,
+as well as the responses content.
+
+The proposed API can be accessed by **applications** and by **users**.
+
+An **application** is a third party service that interacts with the key
+server in order to obtain its users keys.
+
+A **user** is any application that posess a valid FxA token.
 
 
 Application registration and access
 -----------------------------------
+
+The server maintains internally a list of applications. There
+are no global public API to list, modify, add or delete applications.
+
 
 In order to interact with the service, an application must be
 added manually to the system. The registration process is out
