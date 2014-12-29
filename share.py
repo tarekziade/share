@@ -23,7 +23,7 @@ email = 'tarek@ziade.org'
 appname = 'someapp'
 appkey = '12345'
 root = 'http://localhost:8000/'
-key_url = root + email + '/' + appname + '/key?appkey=' + appkey
+key_url = root + email + '/app/' + appname + '/key?appkey=' + appkey
 
 
 def get_key(email, appname, appkey):
