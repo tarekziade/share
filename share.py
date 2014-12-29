@@ -20,14 +20,15 @@ def hkdf_expand(key, info, salt=None):
 
 
 email = 'tarek@ziade.org'
-appname = 'someapp'
-appkey = '12345'
+appid = 'someapp'
+api_key = '12345'
 root = 'http://localhost:8000/'
-key_url = root + email + '/app/' + appname + '/key?appkey=' + appkey
+key_url = root + email + '/app/' + appid + '/key'
+oauth_token = ''
 
 
-def get_key(email, appname, appkey):
-    result = requests.get(key_url)
+def get_key(email, appid, api_key):
+    result = requests.get(key_url + '?api_key=' + api_key)
     if result.status_code == 404:
         return None
     data = result.json()
@@ -40,7 +41,7 @@ def get_key(email, appname, appkey):
     return private_key, private_key.public_key
 
 
-def post_key(email, appname, pub_key, enc_priv_key, nonce, appkey):
+def post_key(email, appid, pub_key, enc_priv_key, nonce, oauth_token):
     options = {'pubKey': pub_key, 'encPrivKey': enc_priv_key,
                'nonce': nonce}
     result = requests.post(key_url, data=options)
@@ -90,10 +91,10 @@ enc_priv, nonce = encrypt_key(priv, kBr)
 
 # posting the key to the user directory service
 print('Posting the Key pair to the directory')
-post_key(email, appname, pub, enc_priv, nonce, appkey)
+post_key(email, appid, pub, enc_priv, nonce, oauth_token)
 
 # getting the key out of the user directory service
 print('Fetching the Key pair from the directory')
 
-print(get_key(email, appname, appkey))
+print(get_key(email, appid, api_key))
 
