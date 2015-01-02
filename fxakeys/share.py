@@ -29,7 +29,7 @@ oauth_token = ''
 
 def get_key(email, appid, api_key):
     result = requests.get(key_url + '?api_key=' + api_key)
-    if result.status_code == 404:
+    if result.status_code in (404, 503):
         return None
     data = result.json()
     box = nacl.secret.SecretBox(kBr)
