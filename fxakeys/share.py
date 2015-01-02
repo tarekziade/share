@@ -3,7 +3,7 @@ import nacl
 import nacl.utils
 import nacl.secret
 import binascii
-from nacl.public import PrivateKey, Box
+from nacl.public import PrivateKey
 import os
 
 from cryptography.hazmat.primitives import hashes
@@ -36,7 +36,7 @@ def get_key(email, appid, api_key):
     nonce = binascii.unhexlify(data['nonce'])
     encPrivKey = binascii.unhexlify(data['encPrivKey'])
     encrypted_private_key = nacl.utils.EncryptedMessage(encPrivKey)
-    private_key = box.decrypt(encrypted_private_key)
+    private_key = box.decrypt(encrypted_private_key, nonce)
     private_key = PrivateKey(private_key)
     return private_key, private_key.public_key
 
@@ -97,4 +97,3 @@ post_key(email, appid, pub, enc_priv, nonce, oauth_token)
 print('Fetching the Key pair from the directory')
 
 print(get_key(email, appid, api_key))
-

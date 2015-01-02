@@ -1,12 +1,12 @@
 from bottle import run
-from fxakeys import views
-from fxakeys.database import init_dbs
+from fxakeys import views       # NOQA
+
+from fxakeys.database import init_dbs, add_api_key
 
 
 def main():
-    apis, users = init_dbs()
+    init_dbs()
     add_api_key("someapp", "12345")
-
     run(host='localhost', port=8000)
 
 
