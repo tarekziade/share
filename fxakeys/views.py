@@ -43,45 +43,29 @@ def fxa_auth(func):
     return _fxa_auth
 
 
-@get('/<email>/app')
+@get('/<email>/apps')
 @fxa_auth
 def get_apps(email):
-    import pdb; pdb.set_trace()
     key = db.get_user_key(email, appid)
     if key:
-        if by_api:
-            del key['encPrivKey']
-            del key['nonce']
-
         return key
 
     return _json(404, {'err': 'Unknown User'})
 
 
-@get('/<email>/app/<appid>/key')
+@get('/<email>/apps/<appid>/key')
 def get_key(email, appid):
-    if 'api_key' in request.params:
-        # API key auth
-        if not db.check_api_key(appid, request.params['api_key']):
-            return _json(503, {'err': 'Wrong api key'})
-        by_api = True
-    else:
-        _check_fxa()
-        by_api = False
+    _check_fxa()
 
     key = db.get_user_key(email, appid)
     if key:
-        if by_api:
-            del key['encPrivKey']
-            del key['nonce']
-
         return key
 
     return _json(404, {'err': 'Unknown User'})
 
 
-@post('/<email>/app/<appid>/key')
+@post('/<email>/apps/<appid>/key')
 @fxa_auth
 def post_key(email, appid):
-    db.set_user_key(email, appid, dict(request.POST))
+    db.set_user_key(email, appid, dict(pubKey=request.POST['pubKey']))
     return {}
