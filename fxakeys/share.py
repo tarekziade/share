@@ -18,25 +18,15 @@ def hkdf_expand(key, info, salt=None):
                 backend=backend)
     return hkdf.derive(key), salt
 
-
-email = 'tarek@ziade.org'
-appid = 'someapp'
-api_key = '12345'
-root = 'http://localhost:8000/'
-key_url = root + email + '/app/' + appid + '/key'
-oauth_token = ''
-
-
 def get_key(email, appid, api_key):
     result = requests.get(key_url + '?api_key=' + api_key)
     if result.status_code in (404, 503):
         return None
     data = result.json()
     box = nacl.secret.SecretBox(kBr)
-    nonce = binascii.unhexlify(data['nonce'])
     encPrivKey = binascii.unhexlify(data['encPrivKey'])
     encrypted_private_key = nacl.utils.EncryptedMessage(encPrivKey)
-    private_key = box.decrypt(encrypted_private_key, nonce)
+    private_key = box.decrypt(encrypted_private_key)
     private_key = PrivateKey(private_key)
     return private_key, private_key.public_key
 
@@ -70,9 +60,17 @@ def encrypt_key(key, secret):
 from fxa.core import Client
 from getpass import getpass
 
-client = Client("https://api.accounts.firefox.com")
+FXA_OAUTH_URI = 'https://oauth-stable.dev.lcip.org'
+FXA_API_URI = 'https://stable.dev.lcip.org/auth'
+
+
+client = Client(FXA_API_URI)
 email = raw_input('FxA email: ')
 password = getpass('FxA password: ')
+appid = 'someapp'
+api_key = '12345'
+root = 'http://localhost:8000/'
+key_url = root + email + '/app/' + appid + '/key'
 
 print('Login into FxA')
 session = client.login(email, password, keys=True)
@@ -88,6 +86,21 @@ print('Generating a key/pair')
 priv, pub = generate_keys()
 pub = binascii.hexlify(pub.encode())
 enc_priv, nonce = encrypt_key(priv, kBr)
+
+# get a long-lived oauth token
+fxa_client_id = ''
+fxa_client_secret = ''
+
+
+from fxa.oauth import Client as OAuthClient
+
+oauth_client = OAuthClient(server_url=FXA_OAUTH_URI)
+oauth_token = oauth_client.trade_code(fxa_client_id, fxa_client_secret,
+                                      session.token)
+
+
+
+
 
 # posting the key to the user directory service
 print('Posting the Key pair to the directory')
