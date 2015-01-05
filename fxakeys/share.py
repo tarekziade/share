@@ -18,40 +18,21 @@ def hkdf_expand(key, info, salt=None):
                 backend=backend)
     return hkdf.derive(key), salt
 
+
 def get_key(email, appid, api_key):
     result = requests.get(key_url + '?api_key=' + api_key)
     if result.status_code in (404, 503):
         return None
     data = result.json()
     box = nacl.secret.SecretBox(kBr)
-    encPrivKey = binascii.unhexlify(data['encPrivKey'])
-    encrypted_private_key = nacl.utils.EncryptedMessage(encPrivKey)
-    private_key = box.decrypt(encrypted_private_key)
-    private_key = PrivateKey(private_key)
-    return private_key, private_key.public_key
+    return data['pubKey']
 
 
-def post_key(email, appid, pub_key, enc_priv_key, nonce, oauth_token):
-    options = {'pubKey': pub_key, 'encPrivKey': enc_priv_key,
-               'nonce': nonce}
+def post_key(email, appid, pub_key, oauth_token):
+    options = {'pubKey': pub_key}
     result = requests.post(key_url, data=options)
     if result.status_code != 200:
         raise Exception('Failed')
-
-
-def generate_keys():
-    # generate random private/public key
-    private_key = PrivateKey.generate()
-    return private_key, private_key.public_key
-
-
-def encrypt_key(key, secret):
-    # encrypt the private key with our secret
-    box = nacl.secret.SecretBox(secret)
-    nonce = nacl.utils.random(nacl.secret.SecretBox.NONCE_SIZE)
-    encrypted = box.encrypt(key.encode(), nonce)
-    encrypted = binascii.hexlify(encrypted)
-    return encrypted, binascii.hexlify(nonce)
 
 
 # let's sign into FxA and grab kA, kB
@@ -79,13 +60,12 @@ kA, kB = session.fetch_keys(stretchpwd=password)
 
 # kB key derived for our app
 print('Creating kBr')
-__, kBr = hkdf_expand(kB, b"SharingApp")
+__, kBr = hkdf_expand(kB, b"identity.mozilla.com/picl/v1/keys/relier/SharingApp")
 
 # let's generate a public and a private key pair
 print('Generating a key/pair')
-priv, pub = generate_keys()
-pub = binascii.hexlify(pub.encode())
-enc_priv, nonce = encrypt_key(priv, kBr)
+priv = PrivateKey(private_key)
+pub = binascii.hexlify(priv.public_key.encode())
 
 # get a long-lived oauth token
 fxa_client_id = ''
@@ -98,15 +78,11 @@ oauth_client = OAuthClient(server_url=FXA_OAUTH_URI)
 oauth_token = oauth_client.trade_code(fxa_client_id, fxa_client_secret,
                                       session.token)
 
-
-
-
-
 # posting the key to the user directory service
 print('Posting the Key pair to the directory')
-post_key(email, appid, pub, enc_priv, nonce, oauth_token)
+post_key(email, appid, pub, oauth_token)
 
 # getting the key out of the user directory service
-print('Fetching the Key pair from the directory')
+print('Fetching the pubKey from the directory')
 
 print(get_key(email, appid, api_key))
