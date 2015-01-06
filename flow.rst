@@ -26,7 +26,7 @@ Open questions, blockers:
   1/ encrypt the private key and publish it into the key server
   2/ derive the private key directly from kb so one device may regenerate it 
   the brainstorming is happening here: https://etherpad.mozilla.org/rRbsvxu1oL
-- what happens to the data that's encrypted when the key changes ? (product question)
+- since we're aiming at a forward secrecy system, what happens to the data that's encrypted when the key changes ? (product question)
 
 
 
