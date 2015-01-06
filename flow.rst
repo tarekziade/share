@@ -2,7 +2,7 @@ Flow
 ====
 
 
-The User Directory is used to publish encryption keys for applications. The diagram below shows its interaction 
+The Key Server is used to publish encryption keys for applications. The diagram below shows its interaction 
 with other parts of a cloud storage infrastructure.
 
 
