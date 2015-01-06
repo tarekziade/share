@@ -20,13 +20,13 @@ The flow is the following:
 
 Open questions, blockers:
 
-- Both services need to be **FxA providers** if we want the same token to be used to authenticate to them
-- The application in this diagram is a client-side application. Can it still provide a return URL for the OAuth2 flow ?
-- To be able to share the key pair across devices, we have 2 options: 
+- [FxA] Both services need to be **FxA providers** if we want the same token to be used to authenticate to them
+- [FxOS] The application in this diagram is a client-side application. Can it still provide a return URL for the OAuth2 flow ?
+- [Key Server] To be able to share the key pair across devices, we have 2 options: 
   1/ encrypt the private key and publish it into the key server
-  2/ derive the private key directly from kb so one device may regenerate it 
-  the brainstorming is happening here: https://etherpad.mozilla.org/rRbsvxu1oL
-- since we're aiming at a forward secrecy system, what happens to the data that's encrypted when the key changes ? (product question)
+  2/ derive the private key directly from kb so one device may regenerate it. 
+  The brainstorming is happening here: https://etherpad.mozilla.org/rRbsvxu1oL
+- [Product] since we're aiming at a forward secrecy system, what happens to the data that's encrypted when the key changes ? (product question)
 
 
 
