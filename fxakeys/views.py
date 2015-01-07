@@ -46,7 +46,6 @@ def fxa_auth(func):
 @get('/<email>/app')
 @fxa_auth
 def get_apps(email):
-    import pdb; pdb.set_trace()
     key = db.get_user_key(email, appid)
     if key:
         if by_api:
