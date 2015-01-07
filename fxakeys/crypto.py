@@ -22,7 +22,7 @@ def encrypt_key(key, secret):
     box = nacl.secret.SecretBox(secret)
     nonce = nacl.utils.random(nacl.secret.SecretBox.NONCE_SIZE)
     encrypted = box.encrypt(key.encode(), nonce)
-    return binascii.hexlify(encrypted)
+    return binascii.hexlify(encrypted), nonce
 
 
 def decrypt_key(key, secret):
@@ -59,6 +59,6 @@ if __name__ == '__main__':
 
     # given a kB and a client_id we can generate a key pair
     client_id = '021fd64aa9661fa1'
-    kB = 'xxx'
+    kB = os.urandom(32)
 
     print generate_keypair(kB, client_id)
