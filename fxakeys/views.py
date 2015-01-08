@@ -52,22 +52,12 @@ def get_apps(email):
 
 
 @get('/<email>/apps/<appid>/key')
+@fxa_auth
 def get_key(email, appid):
-    if 'api_key' in request.params:
-        # API key auth
-        if not db.check_api_key(appid, request.params['api_key']):
-            return _json(503, {'err': 'Wrong api key'})
-        by_api = True
-    else:
-        _check_fxa()
-        by_api = False
-
+    # XXX todo : if the connected user does not
+    # own that email, do not send back encPrivKey
     key = db.get_user_key(email, appid)
     if key:
-        if by_api:
-            del key['encPrivKey']
-            del key['nonce']
-
         return key
 
     return _json(404, {'err': 'Unknown User'})

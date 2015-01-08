@@ -35,8 +35,11 @@ class AppUser(object):
                               data=data)
         elif res.status_code == 200:
             data = res.json()
-            encpriv = data['encPrivKey']
-            priv = decrypt_data(encpriv, self.kbr)
+            if 'encPrivKey' in data:
+                encpriv = data['encPrivKey']
+                priv = decrypt_data(encpriv, self.kbr)
+            else:
+                priv = None
             pub = data['pubKey']
         else:
             raise Exception(str(res.content))
