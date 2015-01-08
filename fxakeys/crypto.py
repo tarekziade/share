@@ -2,7 +2,7 @@ import nacl
 import nacl.utils
 import nacl.secret
 import binascii
-from nacl.public import PrivateKey
+from nacl.public import PrivateKey, Box, PublicKey
 import os
 
 from cryptography.hazmat.primitives import hashes
@@ -18,7 +18,7 @@ def _hkdf_expand(key, info, salt=None):
     return hkdf.derive(key), salt
 
 
-def encrypt_key(key, secret):
+def encrypt_data(key, secret):
     """
     Key: the data to encrypt
     Secret: the encrytion key (hex)
@@ -31,7 +31,7 @@ def encrypt_key(key, secret):
     return binascii.hexlify(encrypted), nonce
 
 
-def decrypt_key(key, secret):
+def decrypt_data(key, secret):
     """
     Key: the data to decrypt (hex)
     Secret: the encrytion key (hex)
@@ -62,10 +62,26 @@ def generate_keypair(kB, client_id, salt=None):
     pub = priv.public_key
     pub = binascii.hexlify(pub.encode())
     # encrypt the priv key with kBr
-    import pdb;pdb.set_trace()
-    encrypted_priv, nonce = encrypt_key(priv, kBr)
+    priv = binascii.hexlify(priv.encode())
+    encrypted_priv, nonce = encrypt_data(priv, kBr)
     priv = binascii.hexlify(priv.encode())
     return pub, priv, encrypted_priv, binascii.hexlify(nonce)
+
+
+def public_encrypt(message, target_pub, origin_priv):
+    priv = PrivateKey(binascii.unhexlify(origin_priv))
+    pub = PublicKey(binascii.unhexlify(target_pub))
+    box = Box(priv, pub)
+    nonce = nacl.utils.random(Box.NONCE_SIZE)
+    return box.encrypt(message, nonce)
+
+
+def public_decrypt(message, origin_pub, target_priv):
+    priv = PrivateKey(binascii.unhexlify(target_priv))
+    pub = PublicKey(binascii.unhexlify(origin_pub))
+    box = Box(priv, pub)
+    return box.decrypt(message)
+
 
 
 if __name__ == '__main__':
@@ -82,9 +98,9 @@ if __name__ == '__main__':
     assert kBr == get_kBr(kB, client_id, salt)
 
 
-    enc, nonce = encrypt_key(key, kBr)
-    assert decrypt_key(enc, kBr) == key
+    enc, nonce = encrypt_data(key, kBr)
+    assert decrypt_data(enc, kBr) == key
 
 
     pub, priv, encrypted_priv, nonce = generate_keypair(kB, client_id, salt)
-    decrypt_key(encrypted_priv, kBr)
+    decrypt_data(encrypted_priv, kBr)

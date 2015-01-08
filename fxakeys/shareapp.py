@@ -2,7 +2,10 @@
 import requests
 
 from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB, SALT
-from fxakeys.crypto import generate_keypair, decrypt_key, get_kBr
+from fxakeys.crypto import generate_keypair, decrypt_data, get_kBr
+from fxakeys.crypto import (encrypt_data, decrypt_data, public_encrypt,
+                            public_decrypt)
+
 
 
 class AppUser(object):
@@ -33,32 +36,41 @@ class AppUser(object):
         elif res.status_code == 200:
             data = res.json()
             encpriv = data['encPrivKey']
-            self.priv = decrypt_key(encpriv, self.kbr)
-            self.pub = data['pubKey']
+            priv = decrypt_data(encpriv, self.kbr)
+            pub = data['pubKey']
         else:
             raise Exception(str(res.content))
 
-        return self.pub, self.priv
+        return pub, priv
 
-    def encrypt_data(target, data):
+    def encrypt_data(self, target, data):
         # 1. get the target public key.
+        pub, __ = self.get_key(target)
 
-        # 2. encrypt the data using the target key.
+        # 2. encrypt the data using the target key
+        return public_encrypt(data, pub, self.priv)
 
-        # 3. print the data to be copy-pasted
-        pass
 
-    def decrypt_data(data):
-        # 1. get back our keys
-
-        # 2. decrypt the private key using kB
-
-        # 3. print the decrypted message
-        pass
+    def decrypt_data(self, origin, data):
+        return public_decrypt(data, origin, self.priv)
 
 
 
 if __name__ == '__main__':
 
+    # tarek is a "some app" user.
     tarek = AppUser(email="tarek@mozilla.com", app="someapp")
+
+    # bill too (he uses the same account for the sake of the demo here)
+    bill = AppUser(email="tarek@mozilla.com", app="someapp")
+
+    # bill wants to send a message to tarek
+    encrypted_data = bill.encrypt_data("tarek@mozilla.com", "hey!")
+
+    # tarek gets the encrypted data and decrypts it
+    msg = tarek.decrypt_data(bill.pub, encrypted_data)
+    assert msg == 'hey!'
+
+
+
 
