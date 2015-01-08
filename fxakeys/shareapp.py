@@ -52,23 +52,30 @@ class AppUser(object):
 
 
     def decrypt_data(self, origin, data):
-        return public_decrypt(data, origin, self.priv)
+        # 1. get the sender public key.
+        pub, __ = self.get_key(origin)
+        return public_decrypt(data, pub, self.priv)
 
 
 
 if __name__ == '__main__':
 
+    # both users are using the same email for
+    # the sake of the demo here
+    bill_email = tarek_email = "tarek@mozilla.com"
+    app = "someapp"
+
     # tarek is a "some app" user.
-    tarek = AppUser(email="tarek@mozilla.com", app="someapp")
+    tarek = AppUser(email=tarek_email, app=app)
 
     # bill too (he uses the same account for the sake of the demo here)
-    bill = AppUser(email="tarek@mozilla.com", app="someapp")
+    bill = AppUser(email=bill_email, app=app)
 
     # bill wants to send a message to tarek
-    encrypted_data = bill.encrypt_data("tarek@mozilla.com", "hey!")
+    encrypted_data = bill.encrypt_data(tarek_email, "hey!")
 
     # tarek gets the encrypted data and decrypts it
-    msg = tarek.decrypt_data(bill.pub, encrypted_data)
+    msg = tarek.decrypt_data(bill_email, encrypted_data)
     assert msg == 'hey!'
 
 
