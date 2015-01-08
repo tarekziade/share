@@ -1,18 +1,12 @@
 import json
 
 from bottle import request, get, post, HTTPResponse
-from fxa.oauth import Client
-from fxa.errors import ClientError
 from fxakeys import database as db
+from fxakeys.fxaoauth import verify_oauth_token
 
 
 def verify_fxa_token(token):
-    fxa = Client()
-    try:
-        profile = fxa.verify_token(token)
-    except ClientError:
-        return None
-    return profile["user"]
+    return verify_oauth_token(token)["user"]
 
 
 def _json(status=200, body=None):
@@ -43,7 +37,7 @@ def fxa_auth(func):
     return _fxa_auth
 
 
-@get('/<email>/app')
+@get('/<email>/apps')
 @fxa_auth
 def get_apps(email):
     key = db.get_user_key(email, appid)
@@ -57,7 +51,7 @@ def get_apps(email):
     return _json(404, {'err': 'Unknown User'})
 
 
-@get('/<email>/app/<appid>/key')
+@get('/<email>/apps/<appid>/key')
 def get_key(email, appid):
     if 'api_key' in request.params:
         # API key auth
@@ -79,7 +73,7 @@ def get_key(email, appid):
     return _json(404, {'err': 'Unknown User'})
 
 
-@post('/<email>/app/<appid>/key')
+@post('/<email>/apps/<appid>/key')
 @fxa_auth
 def post_key(email, appid):
     db.set_user_key(email, appid, dict(request.POST))
