@@ -26,6 +26,7 @@ Returns the keys of a given user for a given app.
 The returned value is a json mapping containing:
 
 - **pubKey**: the public key
+- **encPrivKey**: the encrypted private key, if the authenticated user matches the email
 
 
 GET /<email>/apps
@@ -52,6 +53,7 @@ Used to post a keypair to the server. The POST body is a Json
 mapping containing:
 
 - **pubKey**: the public key
+- **encPrivKey**: the encrypted private key 
 
 
 DELETE /<email>/apps/<appid>/key
