@@ -1,7 +1,6 @@
 from bottle import run
-from fxakeys import views       # NOQA
-
-from fxakeys.database import init_dbs, add_api_key
+from fxakeys.keyserver import views       # NOQA
+from fxakeys.keyserver.database import init_dbs, add_api_key
 
 
 def main():

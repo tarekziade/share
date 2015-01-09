@@ -1,7 +1,7 @@
 import json
 
 from bottle import request, get, post, HTTPResponse
-from fxakeys import database as db
+from fxakeys.keyserver import database as db
 from fxakeys.fxaoauth import verify_oauth_token
 
 
