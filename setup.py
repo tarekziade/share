@@ -13,5 +13,5 @@ setup(name='fxakeys',
       zip_safe=False,
       entry_points="""
       [console_scripts]
-      fxakeys = fxakeys.server:main
+      fxa-key-server = fxakeys.keyserver.server:main
       """)
