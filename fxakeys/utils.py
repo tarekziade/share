@@ -1,4 +1,4 @@
-import json
+import json as _json
 
 from bottle import request, get, post, HTTPResponse
 from fxakeys.keyserver import database as db
@@ -12,7 +12,7 @@ def verify_fxa_token(token):
 def json(status=200, body=None):
     if body is None:
         body = {}
-    body = json.dumps(body)
+    body = _json.dumps(body)
     raise HTTPResponse(status=status, body=body)
 
 
