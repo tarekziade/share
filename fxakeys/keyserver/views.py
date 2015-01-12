@@ -1,40 +1,6 @@
-import json
-
 from bottle import request, get, post, HTTPResponse
 from fxakeys.keyserver import database as db
-from fxakeys.fxaoauth import verify_oauth_token
-
-
-def verify_fxa_token(token):
-    return verify_oauth_token(token)["user"]
-
-
-def _json(status=200, body=None):
-    if body is None:
-        body = {}
-    body = json.dumps(body)
-    raise HTTPResponse(status=status, body=body)
-
-
-def _check_fxa():
-    auth = request.headers.get('Authorization', '')
-    try:
-        token_type, token = auth.split()
-        assert token_type == 'Bearer'
-    except (ValueError, AssertionError):
-        msg = auth == '' and 'Unauthorized' or 'Bad Authentication'
-        _json(503, {'err': msg})
-
-    if not verify_fxa_token(token):
-        _json(503, {'err': 'Bad Token'})
-
-
-
-def fxa_auth(func):
-    def _fxa_auth(*args, **kw):
-        _check_fxa()
-        return func(*args, **kw)
-    return _fxa_auth
+from fxakeys.utils import fxa_auth, json as _json
 
 
 @get('/<email>/apps')
