@@ -14,4 +14,5 @@ setup(name='fxakeys',
       entry_points="""
       [console_scripts]
       fxa-key-server = fxakeys.keyserver.server:main
+      fxa-storage-server = fxakeys.storageserver.server:main
       """)
