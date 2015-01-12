@@ -10,6 +10,8 @@ from fxakeys.crypto import (encrypt_data, decrypt_data, public_encrypt,
 
 
 
+# XXX TODO: obfuscate directory and file names
+#
 class UserStorage(object):
 
     def __init__(self, email, app,
