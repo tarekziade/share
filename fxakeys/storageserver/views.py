@@ -6,7 +6,7 @@ from fxakeys.utils import fxa_auth
 
 _ROOT = '/tmp'
 
-
+# XXX add a chunked version for big files
 @get('/<email>/content/<filepath:path>')
 @fxa_auth
 def get_content(email, filepath):
@@ -18,11 +18,17 @@ def get_content(email, filepath):
 
     target = os.path.join(root, filepath)
     if os.path.isdir(target):
-        return {'items': os.listdir(target)}
+        def _item(item):
+            fullname = os.path.join(target, item)
+            type_ = os.path.isdir(fullname) and 'directory' or 'file'
+            return {'type': type_, 'name': item}
+
+        return {'items': [_item(item) for item in os.listdir(target)]}
 
     return static_file(filepath, root=root)
 
 
+# XXX add a chunked version for big files
 @post('/<email>/upload')
 @fxa_auth
 def post_content(email):
