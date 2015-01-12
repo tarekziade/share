@@ -1,11 +1,39 @@
 # demo
 import requests
+import os
+from StringIO import StringIO
 
 from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB, SALT
 from fxakeys.crypto import generate_keypair, decrypt_data, get_kBr
 from fxakeys.crypto import (encrypt_data, decrypt_data, public_encrypt,
                             public_decrypt)
 
+
+
+class UserStorage(object):
+
+    def __init__(self, email, app,
+                  keyserver='http://localhost:9000'):
+        self.server = keyserver
+        self.email = email
+        self.app = app
+        self.token = get_oauth_token()
+        self.session = requests.Session()
+        self.session.headers['Authorization'] = 'Bearer %s' % self.token
+
+    def share_content(self, target, content, metadata=None):
+        data = {'folder_id': os.path.join('/' + self.app, 'sharing', target)}
+        data.update(metadata)
+        files = {metadata['filename']: StringIO(content)}
+        res = self.session.post(self.server + '/%s/upload' % self.email,
+                                data=data, files=files)
+        return self.server + '/' + self.email + '/content/' + \
+               res.json()['path']
+
+    def get_shared_content(self, origin, name):
+        path = self.email + '/content/' + self.app + '/sharing/' + origin
+        res = self.session.get(self.server + '/' + path + '/' + name)
+        return res.content
 
 
 class AppUser(object):
@@ -76,11 +104,19 @@ if __name__ == '__main__':
 
     # bill wants to send a message to tarek
     encrypted_data = bill.encrypt_data(tarek_email, "hey!")
+    bill_storage = UserStorage(email=bill_email, app=app)
+    url = bill_storage.share_content(tarek_email, encrypted_data,
+            {'filename': 'hey.txt'})
+
+    print url
+
+
+    tarek_storage = UserStorage(email=tarek_email, app=app)
+    encrypted_data = tarek_storage.get_shared_content(bill_email, 'hey.txt')
 
     # tarek gets the encrypted data and decrypts it
     msg = tarek.decrypt_data(bill_email, encrypted_data)
     assert msg == 'hey!'
-
 
 
 

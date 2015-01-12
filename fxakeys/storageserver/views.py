@@ -8,7 +8,7 @@ _ROOT = '/tmp'
 
 
 @get('/<email>/content/<filepath:path>')
-#@fxa_auth
+@fxa_auth
 def get_content(email, filepath):
     root = os.path.join(_ROOT, email)
 
@@ -24,27 +24,28 @@ def get_content(email, filepath):
 
 
 @post('/<email>/upload')
-#@fxa_auth
+@fxa_auth
 def post_content(email):
     root = os.path.join(_ROOT, email)
     # XXX security
     if not os.path.exists(root):
         os.makedirs(root)
 
-    folder_path = request.params['folder_id']
+    folder_path = request.params['folder_id'].lstrip('/')
     target_dir = os.path.join(root, folder_path)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    upload = request.files['filename']
+    filename, file_ = request.files.items()[0]
     # XXX security
-    filename = os.path.join(target_dir, upload.filename)
-    upload.save(filename, overwrite=True)
-    return {}
+    fullpath = os.path.join(target_dir, filename)
+    file_.save(fullpath, overwrite=True)
+
+    return {'path': os.path.join(folder_path, filename)}
 
 
 @get('/<email>/content')
-#@fxa_auth
+@fxa_auth
 def get_root(email):
     root = os.path.join(_ROOT, email)
 
