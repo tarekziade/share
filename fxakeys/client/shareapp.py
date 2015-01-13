@@ -82,6 +82,8 @@ if __name__ == '__main__':
     url = bill_storage.share_content(tarek_email, encrypted_data, 'hey.txt')
     print url
 
+    print bill_storage.list()
+    print bill_storage.list(app)
 
     tarek_storage = UserStorage(email=tarek_email, app=app)
     encrypted_data = tarek_storage.get_shared_content(bill_email, 'hey.txt')
