@@ -15,4 +15,6 @@ setup(name='fxakeys',
       [console_scripts]
       fxa-key-server = fxakeys.keyserver.server:main
       fxa-storage-server = fxakeys.storageserver.server:main
+      fxa-share-file = fxakeys.client.shareapp:share
+      fxa-get-file = fxakeys.client.shareapp:get
       """)

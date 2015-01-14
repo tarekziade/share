@@ -2,6 +2,8 @@
 import requests
 import os
 from StringIO import StringIO
+import argparse
+
 
 from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB, SALT
 from fxakeys.crypto import generate_keypair, decrypt_data, get_kBr
@@ -61,6 +63,48 @@ class AppUser(object):
         pub, __ = self.get_key(origin)
         return public_decrypt(data, pub, self.priv)
 
+
+def share():
+    parser = argparse.ArgumentParser(description='Share a file with someone.')
+    parser.add_argument('file', type=str, help='File to share')
+    parser.add_argument('target', type=str, help='Target e-mail')
+    parser.add_argument('--email', type=str, help='Your e-mail')
+    args = parser.parse_args()
+
+    filename = os.path.basename(args.file)
+    user = AppUser(email=args.email, app="share")
+    with open(args.file) as f:
+        encrypted_data = user.encrypt_data(args.target, f.read())
+
+    storage = UserStorage(email=args.email, app="share")
+    storage.share_content(args.target, encrypted_data, filename)
+    print('Shared!')
+
+
+def get():
+    parser = argparse.ArgumentParser(description='Get a file shared by someone.')
+    parser.add_argument('sender', type=str, help='Sender e-mail')
+    parser.add_argument('--email', type=str, help='Your e-mail')
+
+    args = parser.parse_args()
+
+    user = AppUser(email=args.email, app="share")
+
+    # get_shared_content() actually point to the other user storage
+    #
+    storage = UserStorage(email=args.email, app="share")
+    files = storage.get_shared_list(args.sender)
+    filename = files[0]
+    encrypted_data = storage.get_shared_content(args.sender, filename)
+    data = user.decrypt_data(args.sender, encrypted_data)
+
+    if os.path.exists(filename):
+        raise IOError('File already exist')
+
+    with open(filename, 'w') as f:
+        f.write(data)
+
+    print(filename)
 
 
 if __name__ == '__main__':

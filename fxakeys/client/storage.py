@@ -39,6 +39,10 @@ class UserStorage(object):
         filepath = url_join(self.app, 'sharing', origin, name)
         return self.download(filepath)
 
+    def get_shared_list(self, origin):
+        path = url_join(self.app, 'sharing', origin)
+        return self.list(path)['items']
+
     def list(self, path='/'):
         if path == '/':
             path = url_join(self.server, self.email, 'content')
