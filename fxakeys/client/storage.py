@@ -3,7 +3,7 @@ import requests
 import os
 from StringIO import StringIO
 
-from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB, SALT
+from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB
 from fxakeys.crypto import generate_keypair, decrypt_data, get_kBr
 from fxakeys.crypto import (encrypt_data, decrypt_data, public_encrypt,
                             public_decrypt)

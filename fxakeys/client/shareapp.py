@@ -5,7 +5,7 @@ from StringIO import StringIO
 import argparse
 
 
-from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB, SALT
+from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB
 from fxakeys.crypto import generate_keypair, decrypt_data, get_kBr
 from fxakeys.crypto import (encrypt_data, decrypt_data, public_encrypt,
                             public_decrypt)
@@ -15,17 +15,16 @@ from fxakeys.client.storage import UserStorage
 class AppUser(object):
     def __init__(self, email, app,
                  keyserver='http://localhost:8000',
-                 client_id=CLIENT_ID, kb=KB, salt=SALT):
+                 client_id=CLIENT_ID, kb=KB):
         self.server = keyserver
         self.email = email
         self.app = app
-        self.salt = salt
         self.token = get_oauth_token()
         self.session = requests.Session()
         self.session.headers['Authorization'] = 'Bearer %s' % self.token
         self.client_id = client_id
         self.kb = kb
-        self.kbr = get_kBr(kb, client_id, salt)
+        self.kbr = get_kBr(kb, client_id)
         self.pub, self.priv = self.get_key(self.email)
 
     def get_key(self, email):
@@ -33,7 +32,7 @@ class AppUser(object):
         if res.status_code == 404:
             # no key, we need to generate it and publish it
             pub, priv, encpriv, nonce = generate_keypair(self.kb,
-                    self.client_id, self.salt)
+                    self.client_id)
             data = {'pubKey': pub, 'encPrivKey': encpriv}
             self.session.post(self.server + '/%s/apps/%s/key' % (email, self.app),
                               data=data)

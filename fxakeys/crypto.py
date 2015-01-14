@@ -10,12 +10,12 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.backends import default_backend
 
 
-def _hkdf_expand(key, info, salt=None):
+def _hkdf_expand(key, info):
     backend = default_backend()
-    salt = salt or os.urandom(len(key))
+    salt = '0' * len(key)
     hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=salt, info=info,
                 backend=backend)
-    return hkdf.derive(key), salt
+    return hkdf.derive(key)
 
 
 def encrypt_data(key, secret):
@@ -45,19 +45,19 @@ def decrypt_data(key, secret):
     return private_key
 
 
-def get_kBr(kB, client_id, salt=None):
+def get_kBr(kB, client_id):
     """Given a kB and a client_id returned from the FxA auth server,
     returns a kBr
     """
-    __, kBr = _hkdf_expand(kB, client_id, salt)
+    __, kBr = _hkdf_expand(kB, client_id)
     return binascii.hexlify(kBr)
 
 
-def generate_keypair(kB, client_id, salt=None):
+def generate_keypair(kB, client_id):
     """Given a kbR and a client_id returned from the FxA auth server
     returns a key pair (public+encrypted private key)
     """
-    kBr = get_kBr(kB, client_id, salt)
+    kBr = get_kBr(kB, client_id)
     priv = PrivateKey.generate()
     pub = priv.public_key
     pub = binascii.hexlify(pub.encode())
@@ -90,17 +90,15 @@ if __name__ == '__main__':
     client_id = '021fd64aa9661fa1'
 
     kB = os.urandom(32)
-    salt = os.urandom(32)
-    kBr = get_kBr(kB, client_id, salt)
-
+    kBr = get_kBr(kB, client_id)
     key = binascii.hexlify(os.urandom(32))
 
-    assert kBr == get_kBr(kB, client_id, salt)
+    assert kBr == get_kBr(kB, client_id)
 
 
     enc, nonce = encrypt_data(key, kBr)
     assert decrypt_data(enc, kBr) == key
 
 
-    pub, priv, encrypted_priv, nonce = generate_keypair(kB, client_id, salt)
+    pub, priv, encrypted_priv, nonce = generate_keypair(kB, client_id)
     decrypt_data(encrypted_priv, kBr)

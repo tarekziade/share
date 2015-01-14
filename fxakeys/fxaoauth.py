@@ -17,8 +17,6 @@ CLIENT_ID = "021fd64aa9661fa1"
 AUTH_SERVER = "https://stable.dev.lcip.org/auth"
 OAUTH_SERVER = "https://oauth-stable.dev.lcip.org"
 KB = b'a' * 32
-SALT = b'b' * 32
-
 
 
 def get_oauth_token(client_id=CLIENT_ID, oauth_server=OAUTH_SERVER,
