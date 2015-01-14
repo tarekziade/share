@@ -6,6 +6,10 @@ from fxakeys.utils import fxa_auth
 
 _ROOT = '/tmp'
 
+# permissions
+# shold allow only the owner of the fils *or* the target of a shared
+# content
+#
 # XXX add a chunked version for big files
 @get('/<email>/content/<filepath:path>')
 @fxa_auth

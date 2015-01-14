@@ -68,7 +68,9 @@ def share():
     parser = argparse.ArgumentParser(description='Share a file with someone.')
     parser.add_argument('file', type=str, help='File to share')
     parser.add_argument('target', type=str, help='Target e-mail')
-    parser.add_argument('--email', type=str, help='Your e-mail')
+    parser.add_argument('--email', type=str, help='Your e-mail',
+                        default='tarek@mozilla.com')
+
     args = parser.parse_args()
 
     filename = os.path.basename(args.file)
@@ -84,7 +86,8 @@ def share():
 def get():
     parser = argparse.ArgumentParser(description='Get a file shared by someone.')
     parser.add_argument('sender', type=str, help='Sender e-mail')
-    parser.add_argument('--email', type=str, help='Your e-mail')
+    parser.add_argument('--email', type=str, help='Your e-mail',
+                        default='tarek@mozilla.com')
 
     args = parser.parse_args()
 
