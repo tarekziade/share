@@ -49,7 +49,7 @@ def get_kBr(kB, client_id):
     """Given a kB and a client_id returned from the FxA auth server,
     returns a kBr
     """
-    __, kBr = _hkdf_expand(kB, client_id)
+    kBr = _hkdf_expand(kB, client_id)
     return binascii.hexlify(kBr)
 
 

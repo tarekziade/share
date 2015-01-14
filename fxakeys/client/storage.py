@@ -42,7 +42,8 @@ class UserStorage(object):
 
     def get_shared_list(self, origin):
         path = url_join(self.app, 'sharing', self.email)
-        return self.list(path, email=origin)['items']
+        return [item['name'] for item in self.list(path, email=origin)['items']
+                if item['type'] == 'file']
 
     def list(self, path='/', email=None):
         if email is None:
