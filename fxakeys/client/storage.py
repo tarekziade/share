@@ -58,13 +58,31 @@ class UserStorage(object):
         return res.json()
 
     def upload(self, file_, folder_id, filename, metadata=None):
-        data = {'folder_id': folder_id}
-        if metadata is not None:
-            data.update(metadata)
-        files = {filename: file_}
         path = url_join(self.server, self.email, 'upload')
 
-        res = self.session.post(path, data=data, files=files)
+        headers = {'Content-Disposition': 'attachment',
+                   'Content-Transfer-Encoding': 'binary',
+                   'filename': filename,
+                   'folder_id': folder_id}
+
+        if metadata is not None:
+            headers.update(metadata)
+
+        size = file_.len
+        pos = begin = 0
+        end = size - 1
+        chunk_size = 1024 * 500
+
+        while pos < end:
+            file_.seek(pos)
+            data = file_.read(chunk_size)
+            headers['Content-Range'] = 'bytes %s-%s/%s' % (begin, end,
+                                                           end-begin)
+            headers['Content-Length'] = str(end - begin + 1)
+            res = self.session.post(path, data=data, headers=headers)
+
+            pos += chunk_size
+
         return url_join(self.server, self.email, 'content',
                         res.json()['path'])
 

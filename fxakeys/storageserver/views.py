@@ -32,7 +32,6 @@ def get_content(email, filepath):
     return static_file(filepath, root=root)
 
 
-# XXX add a chunked version for big files
 @post('/<email>/upload')
 @fxa_auth
 def post_content(email):
@@ -41,16 +40,26 @@ def post_content(email):
     if not os.path.exists(root):
         os.makedirs(root)
 
-    folder_path = request.params['folder_id'].lstrip('/')
+
+    folder_path = request.headers['folder_id'].lstrip('/')
+
     target_dir = os.path.join(root, folder_path)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    filename, file_ = request.files.items()[0]
+    filename = request.headers['filename']
+
     # XXX security
     fullpath = os.path.join(target_dir, filename)
-    file_.save(fullpath, overwrite=True)
 
+    content_range = request.headers['Content-Range']
+
+    start = int(content_range.split(' ')[1].split('-')[0])
+    with open(fullpath, 'a+') as f:
+        f.seek(start)
+        f.write(request.body.read())
+
+    # should return a 206 here
     return {'path': os.path.join(folder_path, filename)}
 
 
