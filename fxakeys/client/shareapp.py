@@ -32,8 +32,7 @@ class AppUser(object):
         res = self.session.get(self.server + '/%s/apps/%s/key' % (email, self.app))
         if res.status_code == 404:
             # no key, we need to generate it and publish it
-            pub, priv, encpriv, nonce = generate_keypair(self.kb,
-                    self.client_id)
+            pub, priv, encpriv = generate_keypair(self.kb, self.client_id)
             data = {'pubKey': pub, 'encPrivKey': encpriv}
             self.session.post(self.server + '/%s/apps/%s/key' % (email, self.app),
                               data=data)

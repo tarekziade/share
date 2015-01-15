@@ -22,7 +22,6 @@ class TestCrypto(unittest.TestCase):
         self.assertEqual(box.decrypt(box.encrypt(message)), message)
 
     def test_keypair(self):
-
         kB = os.urandom(32)
         client_id = 'whatever'
         kBr = get_kBr(kB, client_id)
@@ -36,7 +35,6 @@ class TestCrypto(unittest.TestCase):
         kB = os.urandom(32)
         client_id = 'whatever'
         bob_pub, bob_priv, __ = generate_keypair(kB, client_id)
-
 
         kB2 = os.urandom(32)
         tarek_pub, tarek_priv, __ = generate_keypair(kB, client_id)
