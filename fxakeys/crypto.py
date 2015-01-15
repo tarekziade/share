@@ -128,6 +128,10 @@ def stream_encrypt(stream, target_pub, origin_priv):
         data = stream.read(_CHUNK)
         if not data:
             break
+
+        # XXX this is growing in memory. maybe hash
+        # should be built with hash - 1 + data instead
+        # of the whole data
         hash.update(data)
         encrypted_hash = box.encrypt(hash.digest(), nonce)
         enc = box.encrypt(data, nonce)
