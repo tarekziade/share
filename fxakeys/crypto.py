@@ -12,6 +12,14 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.backends import default_backend
 
 
+class EncryptError(Exception):
+    pass
+
+
+class DecryptError(Exception):
+    pass
+
+
 def _hkdf_expand(key, info):
     backend = default_backend()
     salt = '0' * len(key)
@@ -46,7 +54,9 @@ def decrypt_data(data, secret):
 
 class SymmetricBox(object):
     def __init__(self, secret):
-        assert len(secret) == 64, 'The secret must be an hex of 64'
+        if len(secret) != 64:
+            raise TypeError('The secret must be an hex of 64')
+
         self.secret = secret
 
     def encrypt(self, message):
@@ -141,7 +151,9 @@ def stream_decrypt(stream, origin_pub, target_priv):
         data = data[:-_ENC_HASH_SIZE]
         data = box.decrypt(binascii.unhexlify(data))
         hash.update(data)
-        assert hash.digest() == found_hash
+        if hash.digest() != found_hash:
+            raise DecryptError('Hash mismatch')
+
         yield data
 
 
