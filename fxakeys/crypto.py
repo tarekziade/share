@@ -120,6 +120,10 @@ def stream_encrypt(stream, target_pub, origin_priv):
     priv = PrivateKey(binascii.unhexlify(origin_priv))
     pub = PublicKey(binascii.unhexlify(target_pub))
     box = Box(priv, pub)
+
+    # we should vary the nonce. see
+    # http://crypto.stackexchange.com/questions/22435/public-key-encryption-and-big-files-with-nacl
+    #
     nonce = nacl.utils.random(Box.NONCE_SIZE)
 
     hash = hashlib.sha256()
