@@ -124,16 +124,6 @@ def stream_encrypt(stream, target_pub, origin_priv):
 
 
 def stream_decrypt(stream, origin_pub, target_priv):
-    """To decrypt the file
-
-    stream is hex !!
-
-    1/ build a box
-    2/ for each 4096 bytes
-         decrypt
-         build the hash
-         send the decrypted data to the iterator
-    """
     priv = PrivateKey(binascii.unhexlify(target_priv))
     pub = PublicKey(binascii.unhexlify(origin_pub))
     box = Box(priv, pub)
