@@ -18,29 +18,44 @@ def _hkdf_expand(key, info):
     return hkdf.derive(key)
 
 
-def encrypt_data(key, secret):
+def encrypt_data(data, secret):
     """
-    Key: the data to encrypt
-    Secret: the encrytion key (hex)
+    data: the data to encrypt (bytes)
+    secret: the encrytion key (hex)
     """
     secret = binascii.unhexlify(secret)
     box = nacl.secret.SecretBox(secret)
     nonce = nacl.utils.random(nacl.secret.SecretBox.NONCE_SIZE)
-    encrypted = box.encrypt(key.encode(), nonce)
+    encrypted = box.encrypt(data.encode(), nonce)
     return binascii.hexlify(encrypted)
 
 
-def decrypt_data(key, secret):
+def decrypt_data(data, secret):
     """
-    Key: the data to decrypt (hex)
-    Secret: the encrytion key (hex)
+    data: the data to decrypt (hex)
+    secret: the encrytion key (hex)
     """
     secret = binascii.unhexlify(secret)
-    key = binascii.unhexlify(key)
+    data = binascii.unhexlify(data)
     box = nacl.secret.SecretBox(secret)
-    encrypted_private_key = nacl.utils.EncryptedMessage(key)
-    private_key = box.decrypt(encrypted_private_key)
-    return private_key
+    encrypted_data = nacl.utils.EncryptedMessage(data)
+    return box.decrypt(encrypted_data)
+
+
+class SymmetricBox(object):
+    def __init__(self, secret):
+        assert len(secret) == 64, 'The secret must be an hex of 64'
+        self.secret = secret
+
+    def encrypt(self, message):
+        """Encrypts a bytes message.
+        """
+        return encrypt_data(message, self.secret)
+
+    def decrypt(self, message):
+        """Decrypts an hex message
+        """
+        return decrypt_data(message, self.secret)
 
 
 def get_kBr(kB, client_id):

@@ -2,7 +2,7 @@ import os
 import binascii
 import unittest
 
-from fxakeys.crypto import encrypt_data, decrypt_data
+from fxakeys.crypto import encrypt_data, decrypt_data, SymmetricBox
 from fxakeys.crypto import generate_keypair, get_kBr
 from fxakeys.crypto import public_encrypt, public_decrypt
 
@@ -14,7 +14,12 @@ class TestCrypto(unittest.TestCase):
         secret = binascii.hexlify(os.urandom(32))
         message = 'secret'
         encrypted= encrypt_data(message, secret)
-        self.assertEqual(decrypt_data(encrypted, secret), 'secret')
+        self.assertEqual(decrypt_data(encrypted, secret), message)
+
+    def test_symmetric_box(self):
+        box = SymmetricBox(binascii.hexlify(os.urandom(32)))
+        message = binascii.hexlify(os.urandom(1024))
+        self.assertEqual(box.decrypt(box.encrypt(message)), message)
 
     def test_keypair(self):
 
