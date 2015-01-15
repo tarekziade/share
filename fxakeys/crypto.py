@@ -98,7 +98,7 @@ def public_decrypt(message, origin_pub, target_priv):
     return box.decrypt(message)
 
 
-_CHUNK = 1024
+_CHUNK = 4096
 
 # XXX is this the formula?
 _ENC_CHUNK = _CHUNK + Box.NONCE_SIZE + 16
