@@ -24,11 +24,10 @@ def encrypt_data(key, secret):
     Secret: the encrytion key (hex)
     """
     secret = binascii.unhexlify(secret)
-
     box = nacl.secret.SecretBox(secret)
     nonce = nacl.utils.random(nacl.secret.SecretBox.NONCE_SIZE)
     encrypted = box.encrypt(key.encode(), nonce)
-    return binascii.hexlify(encrypted), nonce
+    return binascii.hexlify(encrypted)
 
 
 def decrypt_data(key, secret):
@@ -38,7 +37,6 @@ def decrypt_data(key, secret):
     """
     secret = binascii.unhexlify(secret)
     key = binascii.unhexlify(key)
-
     box = nacl.secret.SecretBox(secret)
     encrypted_private_key = nacl.utils.EncryptedMessage(key)
     private_key = box.decrypt(encrypted_private_key)
@@ -63,11 +61,12 @@ def generate_keypair(kB, client_id):
     pub = binascii.hexlify(pub.encode())
     # encrypt the priv key with kBr
     priv = binascii.hexlify(priv.encode())
-    encrypted_priv, nonce = encrypt_data(priv, kBr)
-    priv = binascii.hexlify(priv.encode())
-    return pub, priv, encrypted_priv, binascii.hexlify(nonce)
+    encrypted_priv = encrypt_data(priv, kBr)
+    #priv = binascii.hexlify(priv.encode())
+    return pub, priv, encrypted_priv
 
 
+# encrypt big files XXX
 def public_encrypt(message, target_pub, origin_priv):
     priv = PrivateKey(binascii.unhexlify(origin_priv))
     pub = PublicKey(binascii.unhexlify(target_pub))
@@ -81,24 +80,3 @@ def public_decrypt(message, origin_pub, target_priv):
     pub = PublicKey(binascii.unhexlify(origin_pub))
     box = Box(priv, pub)
     return box.decrypt(message)
-
-
-
-if __name__ == '__main__':
-
-    # given a kB and a client_id we can generate a key pair
-    client_id = '021fd64aa9661fa1'
-
-    kB = os.urandom(32)
-    kBr = get_kBr(kB, client_id)
-    key = binascii.hexlify(os.urandom(32))
-
-    assert kBr == get_kBr(kB, client_id)
-
-
-    enc, nonce = encrypt_data(key, kBr)
-    assert decrypt_data(enc, kBr) == key
-
-
-    pub, priv, encrypted_priv, nonce = generate_keypair(kB, client_id)
-    decrypt_data(encrypted_priv, kBr)

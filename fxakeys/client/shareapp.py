@@ -28,6 +28,7 @@ class AppUser(object):
         self.pub, self.priv = self.get_key(self.email)
 
     def get_key(self, email):
+        print('Making sure %r keypair is published in the Key service' % email)
         res = self.session.get(self.server + '/%s/apps/%s/key' % (email, self.app))
         if res.status_code == 404:
             # no key, we need to generate it and publish it
@@ -74,9 +75,12 @@ def share():
 
     filename = os.path.basename(args.file)
     user = AppUser(email=args.email, app="share")
+
+    print('Encrypting file..')
     with open(args.file) as f:
         encrypted_data = user.encrypt_data(args.target, f.read())
 
+    print('Pushing file in the storage service')
     storage = UserStorage(email=args.email, app="share")
     storage.share_content(args.target, encrypted_data, filename)
     print('Shared!')
@@ -95,9 +99,12 @@ def get():
     # get_shared_content() actually point to the other user storage
     #
     storage = UserStorage(email=args.email, app="share")
+    print('Get the encrypted file from the storage..')
     files = storage.get_shared_list(args.sender)
     filename = files[0]
     encrypted_data = storage.get_shared_content(args.sender, filename)
+
+    print('Decrypt the file...')
     data = user.decrypt_data(args.sender, encrypted_data)
 
     if os.path.exists(filename):

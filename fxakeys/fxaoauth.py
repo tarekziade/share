@@ -22,6 +22,7 @@ KB = b'a' * 32
 def get_oauth_token(client_id=CLIENT_ID, oauth_server=OAUTH_SERVER,
                     auth_server=AUTH_SERVER, email=EMAIL, password=PASSWORD):
 
+    print('Getting an oauth token from FxA')
     oauth_client = OAuthClient(client_id, server_url=oauth_server)
     session = Client(server_url=auth_server).login(email, password)
     assertion = session.get_identity_assertion(oauth_server)
