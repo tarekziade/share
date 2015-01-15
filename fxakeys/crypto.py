@@ -157,6 +157,8 @@ def stream_decrypt(stream, origin_pub, target_priv):
         yield data
 
 
+# XXX add a header at the beginning of the file
+# that gives the hash kind
 def encrypt_file(source, target, target_pub, origin_priv):
     s = open(source)
     try:
