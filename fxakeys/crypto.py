@@ -103,7 +103,7 @@ _CHUNK = 4096
 # XXX is this the formula?
 _ENC_CHUNK = _CHUNK + Box.NONCE_SIZE + 16
 _HEX_ENC_CHUNK = _ENC_CHUNK * 2
-_HASH_SIZE = 64
+_ENC_HASH_SIZE = 144
 
 
 def stream_encrypt(stream, target_pub, origin_priv):
@@ -119,8 +119,9 @@ def stream_encrypt(stream, target_pub, origin_priv):
         if not data:
             break
         hash.update(data)
+        encrypted_hash = box.encrypt(hash.digest(), nonce)
         enc = box.encrypt(data, nonce)
-        yield binascii.hexlify(enc) + hash.hexdigest()
+        yield binascii.hexlify(enc) + binascii.hexlify(encrypted_hash)
 
 
 def stream_decrypt(stream, origin_pub, target_priv):
@@ -131,14 +132,16 @@ def stream_decrypt(stream, origin_pub, target_priv):
     hash = hashlib.sha256()
 
     while True:
-        data = stream.read(_HEX_ENC_CHUNK + _HASH_SIZE)
+        data = stream.read(_HEX_ENC_CHUNK + _ENC_HASH_SIZE)
         if not data:
             break
-        found_hash = data[-_HASH_SIZE:]
-        data = data[:-_HASH_SIZE]
+
+        found_hash = data[-_ENC_HASH_SIZE:]
+        found_hash = box.decrypt(binascii.unhexlify(found_hash))
+        data = data[:-_ENC_HASH_SIZE]
         data = box.decrypt(binascii.unhexlify(data))
         hash.update(data)
-        assert hash.hexdigest() == found_hash
+        assert hash.digest() == found_hash
         yield data
 
 
