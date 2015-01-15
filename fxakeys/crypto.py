@@ -3,9 +3,9 @@ import nacl.utils
 import nacl.secret
 import binascii
 import os
+import hashlib
 
 from nacl.public import PrivateKey, Box, PublicKey
-import nacl.hash
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -103,43 +103,27 @@ _CHUNK = 4096
 # XXX is this the formula?
 _ENC_CHUNK = _CHUNK + Box.NONCE_SIZE + 16
 _HEX_ENC_CHUNK = _ENC_CHUNK * 2
+_HASH_SIZE = 64
+
 
 def stream_encrypt(stream, target_pub, origin_priv):
-    """
-    encrypting file process:
-
-    1/ build a box with a random nonce
-    2/ for each 4096 bytes
-        build a hash
-        encrypt
-        send them to the iterator
-
-    3/ at the end create a special control message
-       that is the list of chunk hashes.
-       encrypt it and send it to the iterator
-       this special control message can be used to
-       make sure the encrypted file was not tampered.
-    """
     priv = PrivateKey(binascii.unhexlify(origin_priv))
     pub = PublicKey(binascii.unhexlify(target_pub))
     box = Box(priv, pub)
     nonce = nacl.utils.random(Box.NONCE_SIZE)
 
-    hashes = []
+    hash = hashlib.sha256()
 
     while True:
         data = stream.read(_CHUNK)
         if not data:
             break
-        hashes.append(nacl.hash.sha256(data))
+        hash.update(data)
         enc = box.encrypt(data, nonce)
-        yield binascii.hexlify(enc)
-
-    control = ':::'.join(hashes)
-    yield binascii.hexlify(box.encrypt(control, nonce))
+        yield binascii.hexlify(enc) + hash.hexdigest()
 
 
-def stream_decrypt(stream, hash, origin_pub, target_priv):
+def stream_decrypt(stream, origin_pub, target_priv):
     """To decrypt the file
 
     stream is hex !!
@@ -149,22 +133,44 @@ def stream_decrypt(stream, hash, origin_pub, target_priv):
          decrypt
          build the hash
          send the decrypted data to the iterator
-    3/ control the hashes send 'OK' or 'KO' to the iterator
     """
     priv = PrivateKey(binascii.unhexlify(target_priv))
     pub = PublicKey(binascii.unhexlify(origin_pub))
     box = Box(priv, pub)
 
-    hash = binascii.unhexlify(hash)
-    hashes = box.decrypt(hash).split(':::')
-    pos = 0
+    hash = hashlib.sha256()
 
     while True:
-        data = stream.read(_HEX_ENC_CHUNK)
+        data = stream.read(_HEX_ENC_CHUNK + _HASH_SIZE)
         if not data:
             break
-
+        found_hash = data[-_HASH_SIZE:]
+        data = data[:-_HASH_SIZE]
         data = box.decrypt(binascii.unhexlify(data))
-        assert nacl.hash.sha256(data) == hashes[pos]
+        hash.update(data)
+        assert hash.hexdigest() == found_hash
         yield data
-        pos += 1
+
+
+def encrypt_file(source, target, target_pub, origin_priv):
+    s = open(source)
+    try:
+        enkriptor = stream_encrypt(s, target_pub, origin_priv)
+        with open(target, 'w') as f:
+            for chunk in enkriptor:
+                f.write(chunk)
+    finally:
+        s.close()
+
+
+def decrypt_file(source, target, origin_pub, target_priv):
+    s = open(source)
+
+    try:
+        dekriptor = stream_decrypt(s, origin_pub, target_priv)
+
+        with open(target, 'w') as f:
+            for chunk in dekriptor:
+                f.write(chunk)
+    finally:
+        s.close()

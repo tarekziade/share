@@ -2,14 +2,26 @@ from StringIO import StringIO
 import os
 import binascii
 import unittest
+import filecmp
 
 from fxakeys.crypto import encrypt_data, decrypt_data, SymmetricBox
 from fxakeys.crypto import generate_keypair, get_kBr
 from fxakeys.crypto import public_encrypt, public_decrypt
 from fxakeys.crypto import stream_encrypt, stream_decrypt
+from fxakeys.crypto import encrypt_file, decrypt_file
+
+
+_CAP = os.path.join(os.path.dirname(__file__), 'cap.png')
 
 
 class TestCrypto(unittest.TestCase):
+
+    def tearDown(self):
+        if os.path.exists(_CAP + '.crypt'):
+            os.remove(_CAP + '.crypt')
+
+        if os.path.exists(_CAP + '.decrypt'):
+            os.remove(_CAP + '.decrypt')
 
     def test_encryption(self):
         # basic symetric encryption
@@ -56,9 +68,21 @@ class TestCrypto(unittest.TestCase):
         message = '$' * 3000 + 'ok' + 'welp' * 100
 
         encrypted = list(stream_encrypt(StringIO(message), tarek_pub, bob_priv))
-        enc_data = ''.join(encrypted[:-1])
-        enc_ctrl = encrypted[-1]
+        enc_data = ''.join(encrypted)
 
-        data = stream_decrypt(StringIO(enc_data), enc_ctrl, bob_pub, tarek_priv)
+        data = stream_decrypt(StringIO(enc_data), bob_pub, tarek_priv)
         data = ''.join(data)
         self.assertEqual(message, data)
+
+    def test_file_encryption(self):
+        kB = os.urandom(32)
+        client_id = 'whatever'
+        bob_pub, bob_priv, __ = generate_keypair(kB, client_id)
+
+        kB2 = os.urandom(32)
+        tarek_pub, tarek_priv, __ = generate_keypair(kB, client_id)
+
+        encrypt_file(_CAP, _CAP + '.crypt', bob_pub, tarek_priv)
+        decrypt_file(_CAP + '.crypt', _CAP + '.decrypt', tarek_pub, bob_priv)
+
+        self.assertTrue(filecmp.cmp(_CAP, _CAP + '.decrypt'))
