@@ -3,7 +3,6 @@ import nacl.utils
 import nacl.secret
 import binascii
 import os
-import hashlib
 
 from nacl.public import PrivateKey, Box, PublicKey
 
@@ -108,65 +107,55 @@ def public_decrypt(message, origin_pub, target_priv):
     return box.decrypt(message)
 
 
-_CHUNK = 4096
+_ENC_POS_SIZE = 10
+_CHUNK = 4096 + _ENC_POS_SIZE
 
 # XXX is this the formula?
-_ENC_CHUNK = _CHUNK + Box.NONCE_SIZE + 16
+_ENC_CHUNK = _CHUNK + Box.NONCE_SIZE + 26
 _HEX_ENC_CHUNK = _ENC_CHUNK * 2
-_ENC_HASH_SIZE = 144
 
 
 def stream_encrypt(stream, target_pub, origin_priv):
     priv = PrivateKey(binascii.unhexlify(origin_priv))
     pub = PublicKey(binascii.unhexlify(target_pub))
     box = Box(priv, pub)
-
-    # we should vary the nonce. see
-    # http://crypto.stackexchange.com/questions/22435/public-key-encryption-and-big-files-with-nacl
-    #
-    nonce = nacl.utils.random(Box.NONCE_SIZE)
-
-    hash = hashlib.sha256()
+    pos = 0
 
     while True:
         data = stream.read(_CHUNK)
         if not data:
             break
 
-        # XXX this is growing in memory. maybe hash
-        # should be built with hash - 1 + data instead
-        # of the whole data
-        hash.update(data)
-        encrypted_hash = box.encrypt(hash.digest(), nonce)
+        # adding a increment to the chunk
+        data += str(pos).zfill(10)
+        nonce = nacl.utils.random(Box.NONCE_SIZE)
         enc = box.encrypt(data, nonce)
-        yield binascii.hexlify(enc) + binascii.hexlify(encrypted_hash)
+        yield binascii.hexlify(enc)
+        pos += 1
 
 
 def stream_decrypt(stream, origin_pub, target_priv):
     priv = PrivateKey(binascii.unhexlify(target_priv))
     pub = PublicKey(binascii.unhexlify(origin_pub))
     box = Box(priv, pub)
-
-    hash = hashlib.sha256()
+    pos = 0
 
     while True:
-        data = stream.read(_HEX_ENC_CHUNK + _ENC_HASH_SIZE)
+        data = stream.read(_HEX_ENC_CHUNK)
         if not data:
             break
-
-        found_hash = data[-_ENC_HASH_SIZE:]
-        found_hash = box.decrypt(binascii.unhexlify(found_hash))
-        data = data[:-_ENC_HASH_SIZE]
         data = box.decrypt(binascii.unhexlify(data))
-        hash.update(data)
-        if hash.digest() != found_hash:
-            raise DecryptError('Hash mismatch')
+
+        found_pos = int(data[-_ENC_POS_SIZE:])
+        data = data[:-_ENC_POS_SIZE]
+
+        if pos != found_pos:
+            raise DecryptError('Mismatch')
 
         yield data
+        pos += 1
 
 
-# XXX add a header at the beginning of the file
-# that gives the hash kind
 def encrypt_file(source, target, target_pub, origin_priv):
     s = open(source)
     try:
