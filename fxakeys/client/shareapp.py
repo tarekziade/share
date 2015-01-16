@@ -121,15 +121,28 @@ def get():
     filename = files[0]
 
     # XXX should get by chunk
-    encrypted_data = StringIO(storage.get_shared_content(args.sender, filename))
-
-    print('Decrypt the file...')
+    from fxakeys.crypto import _HEX_ENC_CHUNK
 
     if os.path.exists(filename):
         raise IOError('File already exist')
 
+
+    class Reader(object):
+        end = _HEX_ENC_CHUNK - 1
+        start = 0
+
+        def read(self, size=_HEX_ENC_CHUNK):
+
+            range = self.start, self.end
+            try:
+                return storage.get_shared_content(args.sender, filename, range)
+            finally:
+                self.start = self.end + 1
+                self.end = self.start + size - 1
+
+
     with open(filename, 'w') as f:
-        for chunk in user.stream_decrypt(encrypted_data, args.sender):
+        for chunk in user.stream_decrypt(Reader(), args.sender):
             f.write(chunk)
 
     print(filename)
