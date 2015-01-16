@@ -26,9 +26,13 @@ class AppUser(object):
         self.client_id = client_id
         self.kb = kb
         self.kbr = get_kBr(kb, client_id)
+        self._key_cache = {}
         self.pub, self.priv = self.get_key(self.email)
 
     def get_key(self, email):
+        if email in self._key_cache:
+            return self._key_cache[email]
+
         print('Making sure %r keypair is published in the Key service' % email)
         res = self.session.get(self.server + '/%s/apps/%s/key' % (email, self.app))
         if res.status_code == 404:
@@ -48,6 +52,7 @@ class AppUser(object):
         else:
             raise Exception(str(res.content))
 
+        self._key_cache[email] = pub, priv
         return pub, priv
 
     def encrypt_data(self, target, data):
