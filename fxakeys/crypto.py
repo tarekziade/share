@@ -108,7 +108,8 @@ def public_decrypt(message, origin_pub, target_priv):
 
 
 _ENC_POS_SIZE = 10
-_CHUNK = 4096 + _ENC_POS_SIZE
+# 256ko chunks
+_CHUNK = 1024 * 256 + _ENC_POS_SIZE
 
 # XXX is this the formula?
 _ENC_CHUNK = _CHUNK + Box.NONCE_SIZE + 26
