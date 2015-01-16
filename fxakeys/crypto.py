@@ -115,6 +115,11 @@ _ENC_CHUNK = _CHUNK + Box.NONCE_SIZE + 26
 _HEX_ENC_CHUNK = _ENC_CHUNK * 2
 
 
+def enc_size(size):
+    num_chunks, remain = divmod(size, _CHUNK)
+    return _HEX_ENC_CHUNK * num_chunks + (remain + Box.NONCE_SIZE + 26) * 2
+
+
 def stream_encrypt(stream, target_pub, origin_priv):
     priv = PrivateKey(binascii.unhexlify(origin_priv))
     pub = PublicKey(binascii.unhexlify(target_pub))

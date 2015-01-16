@@ -8,7 +8,8 @@ import argparse
 from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB
 from fxakeys.crypto import generate_keypair, decrypt_data, get_kBr
 from fxakeys.crypto import (encrypt_data, decrypt_data, public_encrypt,
-                            public_decrypt)
+                            public_decrypt, stream_encrypt, stream_decrypt,
+                            enc_size)
 from fxakeys.client.storage import UserStorage
 
 
@@ -56,11 +57,20 @@ class AppUser(object):
         # 2. encrypt the data using the target key
         return public_encrypt(data, pub, self.priv)
 
-
     def decrypt_data(self, origin, data):
         # 1. get the sender public key.
         pub, __ = self.get_key(origin)
         return public_decrypt(data, pub, self.priv)
+
+    def stream_encrypt(self, stream, target):
+        # 1. get the target public key.
+        pub, __ = self.get_key(target)
+        return stream_encrypt(stream, pub, self.priv)
+
+    def stream_decrypt(self, stream, origin):
+        # 1. get the sender public key.
+        pub, __ = self.get_key(origin)
+        return stream_decrypt(stream, pub, self.priv)
 
 
 def share():
@@ -74,14 +84,22 @@ def share():
 
     filename = os.path.basename(args.file)
     user = AppUser(email=args.email, app="share")
-
-    print('Encrypting file..')
-    with open(args.file) as f:
-        encrypted_data = user.encrypt_data(args.target, f.read())
-
-    print('Pushing file in the storage service')
     storage = UserStorage(email=args.email, app="share")
-    storage.share_content(args.target, encrypted_data, filename)
+
+    print('Encrypting and sending file by chunks...')
+
+    class Chunker(object):
+        len = enc_size(os.path.getsize(args.file))
+        stream = user.stream_encrypt(open(args.file), args.target)
+
+        def read(self, size):
+            return self.stream.next()
+
+        def seek(self, pos):
+            pass
+
+    storage.share_content(args.target, Chunker(), filename)
+
     print('Shared!')
 
 
@@ -101,16 +119,18 @@ def get():
     print('Get the encrypted file from the storage..')
     files = storage.get_shared_list(args.sender)
     filename = files[0]
-    encrypted_data = storage.get_shared_content(args.sender, filename)
+
+    # XXX should get by chunk
+    encrypted_data = StringIO(storage.get_shared_content(args.sender, filename))
 
     print('Decrypt the file...')
-    data = user.decrypt_data(args.sender, encrypted_data)
 
     if os.path.exists(filename):
         raise IOError('File already exist')
 
     with open(filename, 'w') as f:
-        f.write(data)
+        for chunk in user.stream_decrypt(encrypted_data, args.sender):
+            f.write(chunk)
 
     print(filename)
 

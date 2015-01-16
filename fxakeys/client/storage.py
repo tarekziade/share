@@ -31,9 +31,9 @@ class UserStorage(object):
         self.session = requests.Session()
         self.session.headers['Authorization'] = 'Bearer %s' % self.token
 
-    def share_content(self, target, content, filename, metadata=None):
+    def share_content(self, target, stream, filename, metadata=None):
         folder_id = url_join('/' + self.app, 'sharing', target)
-        return self.upload(StringIO(content), folder_id, filename, metadata)
+        return self.upload(stream, folder_id, filename, metadata)
 
     def get_shared_content(self, origin, name):
         # getting content from the origin user /content/app/sharing/email
@@ -76,12 +76,12 @@ class UserStorage(object):
         while pos < end:
             file_.seek(pos)
             data = file_.read(chunk_size)
-            headers['Content-Range'] = 'bytes %s-%s/%s' % (begin, end,
-                                                           end-begin)
-            headers['Content-Length'] = str(end - begin + 1)
+            clen = len(data)
+            headers['Content-Range'] = 'bytes %s-%s/%s' % (pos, clen - 1,
+                                                           size)
+            headers['Content-Length'] = clen
             res = self.session.post(path, data=data, headers=headers)
-
-            pos += chunk_size
+            pos += len(data)
 
         return url_join(self.server, self.email, 'content',
                         res.json()['path'])

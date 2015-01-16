@@ -55,8 +55,11 @@ def post_content(email):
     content_range = request.headers['Content-Range']
 
     start = int(content_range.split(' ')[1].split('-')[0])
-    with open(fullpath, 'a+') as f:
-        f.seek(start)
+    mode = start == 0 and 'w' or 'a+'
+
+    with open(fullpath, mode) as f:
+        if mode == 'a+':
+            f.seek(start)
         f.write(request.body.read())
 
     # should return a 206 here
