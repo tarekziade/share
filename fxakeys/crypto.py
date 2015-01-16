@@ -126,16 +126,17 @@ def stream_encrypt(stream, target_pub, origin_priv):
     box = Box(priv, pub)
     pos = 0
 
+    def _encrypt(data, pos):
+        data += str(pos).zfill(10)
+        nonce = nacl.utils.random(Box.NONCE_SIZE)
+        return binascii.hexlify(box.encrypt(data, nonce))
+
     while True:
         data = stream.read(_CHUNK)
         if not data:
             break
 
-        # adding a increment to the chunk
-        data += str(pos).zfill(10)
-        nonce = nacl.utils.random(Box.NONCE_SIZE)
-        enc = box.encrypt(data, nonce)
-        yield binascii.hexlify(enc)
+        yield _encrypt(data, pos)
         pos += 1
 
 
@@ -149,8 +150,8 @@ def stream_decrypt(stream, origin_pub, target_priv):
         data = stream.read(_HEX_ENC_CHUNK)
         if not data:
             break
-        data = box.decrypt(binascii.unhexlify(data))
 
+        data = box.decrypt(binascii.unhexlify(data))
         found_pos = int(data[-_ENC_POS_SIZE:])
         data = data[:-_ENC_POS_SIZE]
 

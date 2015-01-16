@@ -57,7 +57,7 @@ class UserStorage(object):
         res = self.session.get(path)
         return res.json()
 
-    def upload(self, file_, folder_id, filename, metadata=None):
+    def upload(self, stream, folder_id, filename, metadata=None):
         path = url_join(self.server, self.email, 'upload')
 
         headers = {'Content-Disposition': 'attachment',
@@ -68,14 +68,10 @@ class UserStorage(object):
         if metadata is not None:
             headers.update(metadata)
 
-        size = file_.len
-        pos = begin = 0
-        end = size - 1
-        chunk_size = 1024 * 500
+        size = stream.len
+        pos = 0
 
-        while pos < end:
-            file_.seek(pos)
-            data = file_.read(chunk_size)
+        for data in stream:
             clen = len(data)
             headers['Content-Range'] = 'bytes %s-%s/%s' % (pos, clen - 1,
                                                            size)

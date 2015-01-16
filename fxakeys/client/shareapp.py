@@ -92,11 +92,11 @@ def share():
         len = enc_size(os.path.getsize(args.file))
         stream = user.stream_encrypt(open(args.file), args.target)
 
-        def read(self, size):
-            return self.stream.next()
+        def __iter__(self):
+            return self
 
-        def seek(self, pos):
-            pass
+        def next(self):
+            return self.stream.next()
 
     storage.share_content(args.target, Chunker(), filename)
 
