@@ -180,3 +180,19 @@ def decrypt_file(source, target, origin_pub, target_priv):
                 f.write(chunk)
     finally:
         s.close()
+
+
+# XXX add this to encrypt a file that can be easily shared
+#
+# - generate a symmetric key.
+# - Use that key to encrypt the file
+# - encrypt the key with the user's Pub/priv key
+# - add the encrypted key in the file's "header" - first chunk
+#
+#
+# Distribute the file means:
+# - get the key from the header, decrypt it
+# - re-encrypt it using the target's pub key
+# - distribute this new key + the encrypted file.
+#
+

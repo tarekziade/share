@@ -61,6 +61,8 @@ def share():
 
 
 def get():
+    """ Get a file shared by another user.
+    """
     parser = argparse.ArgumentParser(
         description='Get a file shared by someone.')
     parser.add_argument('sender', type=str, help='Sender e-mail')
@@ -71,8 +73,7 @@ def get():
 
     user = AppUser(email=args.email, app="share")
 
-    # get_shared_content() actually point to the other user storage
-    #
+    # XXX get_shared_content() actually point to the other user storage
     storage = UserStorage(email=args.email, app="share")
     print('Get the encrypted file from the storage..')
     files = storage.get_shared_list(args.sender)

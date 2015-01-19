@@ -22,6 +22,9 @@ class AppUser(object):
         self._key_cache = {}
         self.pub, self.priv = self.get_key(self.email)
 
+    #
+    # key pair setter/getter
+    #
     def get_key(self, email):
         if email in self._key_cache:
             return self._key_cache[email]
@@ -49,24 +52,22 @@ class AppUser(object):
         self._key_cache[email] = pub, priv
         return pub, priv
 
+    #
+    # encryption/decryption APIs
+    #
     def encrypt_data(self, target, data):
-        # 1. get the target public key.
         pub, __ = self.get_key(target)
 
-        # 2. encrypt the data using the target key
         return public_encrypt(data, pub, self.priv)
 
     def decrypt_data(self, origin, data):
-        # 1. get the sender public key.
         pub, __ = self.get_key(origin)
         return public_decrypt(data, pub, self.priv)
 
     def stream_encrypt(self, stream, target):
-        # 1. get the target public key.
         pub, __ = self.get_key(target)
         return stream_encrypt(stream, pub, self.priv)
 
     def stream_decrypt(self, stream, origin):
-        # 1. get the sender public key.
         pub, __ = self.get_key(origin)
         return stream_decrypt(stream, pub, self.priv)
