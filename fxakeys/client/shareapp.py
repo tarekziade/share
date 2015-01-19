@@ -1,13 +1,12 @@
 # demo
 import requests
 import os
-from StringIO import StringIO
 import argparse
 
-
+from fxakeys.crypto import _HEX_ENC_CHUNK
 from fxakeys.fxaoauth import get_oauth_token, CLIENT_ID, KB
-from fxakeys.crypto import generate_keypair, decrypt_data, get_kBr
-from fxakeys.crypto import (encrypt_data, decrypt_data, public_encrypt,
+from fxakeys.crypto import generate_keypair, get_kBr
+from fxakeys.crypto import (public_encrypt, decrypt_data,
                             public_decrypt, stream_encrypt, stream_decrypt,
                             enc_size)
 from fxakeys.client.storage import UserStorage
@@ -33,13 +32,14 @@ class AppUser(object):
         if email in self._key_cache:
             return self._key_cache[email]
 
-        print('Making sure %r keypair is published in the Key service' % email)
-        res = self.session.get(self.server + '/%s/apps/%s/key' % (email, self.app))
+        res = self.session.get(self.server + '/%s/apps/%s/key' % (email,
+                                                                  self.app))
         if res.status_code == 404:
             # no key, we need to generate it and publish it
             pub, priv, encpriv = generate_keypair(self.kb, self.client_id)
             data = {'pubKey': pub, 'encPrivKey': encpriv}
-            self.session.post(self.server + '/%s/apps/%s/key' % (email, self.app),
+            self.session.post(self.server + '/%s/apps/%s/key' % (email,
+                                                                 self.app),
                               data=data)
         elif res.status_code == 200:
             data = res.json()
@@ -108,8 +108,29 @@ def share():
     print('Shared!')
 
 
+class Reader(object):
+
+    def __init__(self, storage, sender, filename):
+        self.start = self.end = 0
+        self.storage = storage
+        self.sender = sender
+        self.filename = filename
+        self._read = storage.get_shared_content
+
+    def read(self, size=_HEX_ENC_CHUNK):
+        if self.start == 0:
+            self.end = size - 1
+        range = self.start, self.end
+        try:
+            return self._read(self.sender, self.filename, range)
+        finally:
+            self.start = self.end + 1
+            self.end = self.start + size - 1
+
+
 def get():
-    parser = argparse.ArgumentParser(description='Get a file shared by someone.')
+    parser = argparse.ArgumentParser(
+        description='Get a file shared by someone.')
     parser.add_argument('sender', type=str, help='Sender e-mail')
     parser.add_argument('--email', type=str, help='Your e-mail',
                         default='tarek@mozilla.com')
@@ -125,62 +146,13 @@ def get():
     files = storage.get_shared_list(args.sender)
     filename = files[0]
 
-    # XXX should get by chunk
-    from fxakeys.crypto import _HEX_ENC_CHUNK
-
     if os.path.exists(filename):
         raise IOError('File already exist')
 
-
-    class Reader(object):
-        end = _HEX_ENC_CHUNK - 1
-        start = 0
-
-        def read(self, size=_HEX_ENC_CHUNK):
-
-            range = self.start, self.end
-            try:
-                return storage.get_shared_content(args.sender, filename, range)
-            finally:
-                self.start = self.end + 1
-                self.end = self.start + size - 1
-
+    reader = Reader(storage, args.sender, filename)
 
     with open(filename, 'w') as f:
-        for chunk in user.stream_decrypt(Reader(), args.sender):
+        for chunk in user.stream_decrypt(reader, args.sender):
             f.write(chunk)
 
     print(filename)
-
-
-if __name__ == '__main__':
-
-    # both users are using the same email for
-    # the sake of the demo here
-    bill_email = tarek_email = "tarek@mozilla.com"
-    app = "someapp"
-
-    # tarek is a "some app" user.
-    tarek = AppUser(email=tarek_email, app=app)
-
-    # bill too (he uses the same account for the sake of the demo here)
-    bill = AppUser(email=bill_email, app=app)
-
-    # bill wants to send a message to tarek
-    encrypted_data = bill.encrypt_data(tarek_email, "hey!")
-    bill_storage = UserStorage(email=bill_email, app=app)
-    url = bill_storage.share_content(tarek_email, encrypted_data, 'hey.txt')
-    print url
-
-    print bill_storage.list()
-    print bill_storage.list(app)
-
-    tarek_storage = UserStorage(email=tarek_email, app=app)
-    encrypted_data = tarek_storage.get_shared_content(bill_email, 'hey.txt')
-
-    # tarek gets the encrypted data and decrypts it
-    msg = tarek.decrypt_data(bill_email, encrypted_data)
-    assert msg == 'hey!'
-
-
-

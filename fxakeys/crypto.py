@@ -2,7 +2,6 @@ import nacl
 import nacl.utils
 import nacl.secret
 import binascii
-import os
 
 from nacl.public import PrivateKey, Box, PublicKey
 
@@ -85,10 +84,8 @@ def generate_keypair(kB, client_id):
     priv = PrivateKey.generate()
     pub = priv.public_key
     pub = binascii.hexlify(pub.encode())
-    # encrypt the priv key with kBr
     priv = binascii.hexlify(priv.encode())
     encrypted_priv = encrypt_data(priv, kBr)
-    #priv = binascii.hexlify(priv.encode())
     return pub, priv, encrypted_priv
 
 
@@ -176,10 +173,8 @@ def encrypt_file(source, target, target_pub, origin_priv):
 
 def decrypt_file(source, target, origin_pub, target_priv):
     s = open(source)
-
     try:
         dekriptor = stream_decrypt(s, origin_pub, target_priv)
-
         with open(target, 'w') as f:
             for chunk in dekriptor:
                 f.write(chunk)

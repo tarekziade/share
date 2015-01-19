@@ -1,7 +1,6 @@
 import json as _json
 
-from bottle import request, get, post, HTTPResponse
-from fxakeys.keyserver import database as db
+from bottle import request, HTTPResponse
 from fxakeys.fxaoauth import verify_oauth_token
 
 
@@ -27,7 +26,6 @@ def _check_fxa():
 
     if not verify_fxa_token(token):
         json(503, {'err': 'Bad Token'})
-
 
 
 def fxa_auth(func):

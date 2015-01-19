@@ -9,6 +9,11 @@ def init_dbs(users='/tmp/fxakeys-userkeys.json'):
     return users
 
 
+def get_apps(email):
+    match = '^%s:.*' % email
+    return _DBS['users'].get(where('id').matches(match))
+
+
 def get_user_key(email, appid):
     id_ = email + ':' + appid
     return _DBS['users'].get(where('id') == id_)

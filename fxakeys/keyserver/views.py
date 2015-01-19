@@ -1,4 +1,4 @@
-from bottle import request, get, post, HTTPResponse
+from bottle import request, get, post
 from fxakeys.keyserver import database as db
 from fxakeys.utils import fxa_auth, json as _json
 
@@ -6,15 +6,10 @@ from fxakeys.utils import fxa_auth, json as _json
 @get('/<email>/apps')
 @fxa_auth
 def get_apps(email):
-    key = db.get_user_key(email, appid)
-    if key:
-        if by_api:
-            del key['encPrivKey']
-            del key['nonce']
-
-        return key
-
-    return _json(404, {'err': 'Unknown User'})
+    apps = db.get_apps(email)
+    if not apps:
+        return _json(404, {'err': 'Unknown User'})
+    return {'apps': [app['id'] for app in apps]}
 
 
 @get('/<email>/apps/<appid>/key')

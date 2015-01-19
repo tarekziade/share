@@ -1,10 +1,9 @@
-import json
 import os
-
-from bottle import request, get, post, HTTPResponse, static_file
+from bottle import request, get, post, static_file
 from fxakeys.utils import fxa_auth
 
 _ROOT = '/tmp'
+
 
 # permissions
 # shold allow only the owner of the fils *or* the target of a shared
@@ -39,7 +38,6 @@ def post_content(email):
     # XXX security
     if not os.path.exists(root):
         os.makedirs(root)
-
 
     folder_path = request.headers['folder_id'].lstrip('/')
 

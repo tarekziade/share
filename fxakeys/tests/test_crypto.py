@@ -27,7 +27,7 @@ class TestCrypto(unittest.TestCase):
         # basic symetric encryption
         secret = binascii.hexlify(os.urandom(32))
         message = 'secret'
-        encrypted= encrypt_data(message, secret)
+        encrypted = encrypt_data(message, secret)
         self.assertEqual(decrypt_data(encrypted, secret), message)
 
     def test_symmetric_box(self):
@@ -51,7 +51,7 @@ class TestCrypto(unittest.TestCase):
         bob_pub, bob_priv, __ = generate_keypair(kB, client_id)
 
         kB2 = os.urandom(32)
-        tarek_pub, tarek_priv, __ = generate_keypair(kB, client_id)
+        tarek_pub, tarek_priv, __ = generate_keypair(kB2, client_id)
 
         message = 'yeah'
         enc = public_encrypt(message, tarek_pub, bob_priv)
@@ -63,11 +63,12 @@ class TestCrypto(unittest.TestCase):
         bob_pub, bob_priv, __ = generate_keypair(kB, client_id)
 
         kB2 = os.urandom(32)
-        tarek_pub, tarek_priv, __ = generate_keypair(kB, client_id)
+        tarek_pub, tarek_priv, __ = generate_keypair(kB2, client_id)
 
         message = '$' * 3000 + 'ok' + 'welp' * 100
 
-        encrypted = list(stream_encrypt(StringIO(message), tarek_pub, bob_priv))
+        encrypted = list(stream_encrypt(StringIO(message), tarek_pub,
+                                        bob_priv))
         enc_data = ''.join(encrypted)
 
         data = stream_decrypt(StringIO(enc_data), bob_pub, tarek_priv)
@@ -80,7 +81,7 @@ class TestCrypto(unittest.TestCase):
         bob_pub, bob_priv, __ = generate_keypair(kB, client_id)
 
         kB2 = os.urandom(32)
-        tarek_pub, tarek_priv, __ = generate_keypair(kB, client_id)
+        tarek_pub, tarek_priv, __ = generate_keypair(kB2, client_id)
 
         encrypt_file(_CAP, _CAP + '.crypt', bob_pub, tarek_priv)
         decrypt_file(_CAP + '.crypt', _CAP + '.decrypt', tarek_pub, bob_priv)
