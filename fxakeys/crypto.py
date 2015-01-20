@@ -119,6 +119,8 @@ def enc_size(size):
 
 
 def stream_encrypt(stream, target_pub, origin_priv):
+    # XXX if known, we should use the data size in the zfill
+    # so the len of the data can be checked when decrypted
     priv = PrivateKey(binascii.unhexlify(origin_priv))
     pub = PublicKey(binascii.unhexlify(target_pub))
     box = Box(priv, pub)
@@ -196,3 +198,42 @@ def decrypt_file(source, target, origin_pub, target_priv):
 # - distribute this new key + the encrypted file.
 #
 
+def sym_stream_encrypt(stream, secret):
+    secret = binascii.unhexlify(secret)
+    box = nacl.secret.SecretBox(secret)
+
+    def _encrypt(data, pos):
+        data += str(pos).zfill(10)
+        nonce = nacl.utils.random(Box.NONCE_SIZE)
+        return binascii.hexlify(box.encrypt(data, nonce))
+
+    pos = 0
+
+    while True:
+        data = stream.read(_CHUNK)
+        if not data:
+            break
+
+        yield _encrypt(data, pos)
+        pos += 1
+
+
+def sym_stream_decrypt(stream, secret):
+    secret = binascii.unhexlify(secret)
+    box = nacl.secret.SecretBox(secret)
+    pos = 0
+
+    while True:
+        data = stream.read(_HEX_ENC_CHUNK)
+        if not data:
+            break
+
+        data = box.decrypt(binascii.unhexlify(data))
+        found_pos = int(data[-_ENC_POS_SIZE:])
+        data = data[:-_ENC_POS_SIZE]
+
+        if pos != found_pos:
+            raise DecryptError('Mismatch')
+
+        yield data
+        pos += 1

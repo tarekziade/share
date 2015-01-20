@@ -9,6 +9,7 @@ from fxakeys.crypto import generate_keypair, get_kBr
 from fxakeys.crypto import public_encrypt, public_decrypt
 from fxakeys.crypto import stream_encrypt, stream_decrypt
 from fxakeys.crypto import encrypt_file, decrypt_file
+from fxakeys.crypto import sym_stream_encrypt, sym_stream_decrypt
 
 
 _CAP = os.path.join(os.path.dirname(__file__), 'cap.png')
@@ -87,3 +88,12 @@ class TestCrypto(unittest.TestCase):
         decrypt_file(_CAP + '.crypt', _CAP + '.decrypt', tarek_pub, bob_priv)
 
         self.assertTrue(filecmp.cmp(_CAP, _CAP + '.decrypt'))
+
+    def test_sym_stream(self):
+        secret = binascii.hexlify(os.urandom(32))
+
+        data = StringIO('some data')
+        enc = ''.join(sym_stream_encrypt(data, secret))
+        dec = ''.join(sym_stream_decrypt(StringIO(enc), secret))
+
+        self.assertEqual(''.join(dec), 'some data')
