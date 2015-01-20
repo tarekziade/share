@@ -46,8 +46,8 @@ can be decrypted by its owner on any FxA connected device.
 
 Publishing the key pair offers two advantages:
 
-- **Device Syncing** the ability to retrieve it from any device attached to the
-  given FxA account.
+- **Device Syncing** the ability to retrieve the full key pair
+  from any device attached to the given FxA account.
 - **Discoverability** the ability to search & retrieve application users public keys.
 
 
