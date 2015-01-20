@@ -96,8 +96,11 @@ See a full working example in Python `here <https://github.com/tarekziade/fxakey
 
 
 
-Use case 1: sharing a password
-==============================
+Use cases
+=========
+
+Sharing a password
+------------------
 
 A simple application feature based on the flow demonstrated above is password
 sharing:
@@ -109,12 +112,10 @@ sharing:
 4. Bob uses the flow described above to encrypt the password and send it to Sarah.
 
 
-
 XXX
 
-
-Use case 2: sharing files
-=========================
+Sharing Files 
+-------------
 
 Let's imagine a second FxA content provider: a Cloud Storage API where FxA can
 read and write files.
