@@ -16,6 +16,9 @@ FxA users with minimal overhead and maximal privacy protection.
 This document describes possible encryption flows enabled by FxA & the
 Key Server.
 
+.. contents::
+
+
 
 Generating Application Keys
 ===========================
