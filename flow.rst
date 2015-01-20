@@ -3,10 +3,10 @@ Encryption Flows
 ================
 
 
-The Key Service is a Firefox Account Content **Provider** like
+The Key Server is a Firefox Account Content **Provider** like
 the `Profile Server <https://github.com/mozilla/fxa-profile-server/blob/master/docs/API.md>`_.
 
-The Key Service can be used by third party applications to store
+The Key Server can be used by third party applications to store
 and retrieve public encryption keys on behalf of their
 FxA-connected users.
 
@@ -14,7 +14,7 @@ The main use case is to facilitate end-to-end encryption between
 FxA users with minimal overhead and maximal privacy protection.
 
 This document describes possible encryption flows enabled by FxA & the
-Key Service.
+Key Server.
 
 
 Generating Application Keys
