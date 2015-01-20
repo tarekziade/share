@@ -51,6 +51,12 @@ Publishing the key pair offers two advantages:
 - **Discoverability** the ability to search & retrieve application users public keys.
 
 
+Permissions & Privacy
+=====================
+
+XXX
+
+
 Using Application Keys
 ======================
 
@@ -58,8 +64,9 @@ Once a key pair is generated for an application, using it to perform end-to-end
 encryption is very simple.
 
 For example, by using `NaCl's crypto_box <http://nacl.cr.yp.to/box.html>`_ Bob
-can send Sarah encrypted content mutual authentication is guaranteed between
-them (not repudiation though).
+can send Sarah encrypted content where mutual authentication is guaranteed
+between them (not repudiation though).
+
 
 Encryption pseudo-code::
 
@@ -79,7 +86,7 @@ Decryption pseudo-code::
     sarah_private_key = decrypt(sarah_kBr, get_from_key_server('sarah@example.com'))
 
     sarah_box = crypto_box(sarah_private_key, bob_public_key)
-    secret_message = sarah_box.encrypt(encrypt_secret_message)
+    secret_message = sarah_box.decrypt(encrypt_secret_message)
 
 
 See a full working example in Python `here <https://github.com/tarekziade/fxakeys/blob/master/fxakeys/crypto.py#L92>`_.
@@ -88,6 +95,17 @@ See a full working example in Python `here <https://github.com/tarekziade/fxakey
 
 Use case 1: sharing a password
 ==============================
+
+A simple application feature based on the flow demonstrated above is password
+sharing:
+
+1. Bob connects to his FxA account
+2. Bob selects a password to share and types a target e-mail "sarah@example.com"
+3. If "sarah@example.com" has a published key for the application in the key
+   service, bingo!
+4. Bob uses the flow described above to encrypt the password and send it to Sarah.
+
+
 
 XXX
 
