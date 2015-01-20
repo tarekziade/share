@@ -141,7 +141,7 @@ The flow is the following:
 Encryptions strategies
 ======================
 
-XXX
+XXX add all the scenario on kB changing, people leaving a group etc
 
 one-to-one encryption
 ---------------------
