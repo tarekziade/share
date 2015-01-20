@@ -54,14 +54,43 @@ Publishing the key pair offers two advantages:
 Using Application Keys
 ======================
 
+Once a key pair is generated for an application, using it to perform end-to-end
+encryption is very simple.
 
-XXX
+For example, by using `NaCl's crypto_box <http://nacl.cr.yp.to/box.html>`_ Bob
+can send Sarah encrypted content mutual authentication is guaranteed between
+them (not repudiation though).
+
+Encryption pseudo-code::
+
+    bob_kBr = get_from_fxa()
+    sarah_public_key = get_from_key_server('sarah@example.com')
+    bob_private_key = decrypt(bob_kBr, get_from_key_server('bob@example.com'))
+
+    bob_box = crypto_box(bob_private_key, sarah_public_key)
+    encrypted_secret_message = bob_box.encrypt(secret_message)
+
+    send_to_sarah(encrypted_secret_message)
+
+Decryption pseudo-code::
+
+    sarah_kBr = get_from_fxa()
+    bob_public_key = get_from_key_server('bob@example.com')
+    sarah_private_key = decrypt(sarah_kBr, get_from_key_server('sarah@example.com'))
+
+    sarah_box = crypto_box(sarah_private_key, bob_public_key)
+    secret_message = sarah_box.encrypt(encrypt_secret_message)
+
+
+See a full working example in Python `here <https://github.com/tarekziade/fxakeys/blob/master/fxakeys/crypto.py#L92>`_.
+
 
 
 Use case 1: sharing a password
 ==============================
 
 XXX
+
 
 Use case 2: sharing files
 =========================
